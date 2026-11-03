@@ -21,6 +21,10 @@
   td[contenteditable]{outline:none;min-width:60px}
   tr.tot td{font-weight:700}
   .blue th,.blue tr.tot td{background:#cfe2f3}
+  td.lr{background:#ffc7ce;color:#9c0006}
+  .set{border:1px solid #999;border-radius:8px;padding:10px;margin-bottom:14px;font-size:14px}
+  .set label{display:inline-block;margin:4px 10px 4px 0}
+  .set input{width:62px;font-size:15px;padding:3px}
   button{font-size:15px;padding:8px 14px;margin-top:10px;border:1px solid #555;border-radius:6px;background:#fff;color:#000}
 </style>
 </head>
@@ -32,6 +36,14 @@
 </div>
 
 <div id="out" style="display:none">
+  <div class="set">
+    <b>Target % (isse kam ho to light red)</b><br>
+    <label>Call Completion <input type="number" step="any" id="th_cc"></label>
+    <label>Strike Rate <input type="number" step="any" id="th_sr"></label>
+    <label>SKU/Invoice <input type="number" step="any" id="th_sku"></label>
+    <label>Order Vs Delivery <input type="number" step="any" id="th_dvo"></label>
+    <label>Full in (isse zyada ho to red) <input type="number" step="any" id="th_fin"></label>
+  </div>
   <div id="card1" class="card blue">
     <h2>PJP wise KPI</h2>
     <div class="wrap"><table id="t1"></table></div>
@@ -80,25 +92,59 @@ function parse(rows){
   return out;
 }
 
+function kpis(o){
+  const D={cc:0,sr:0,sku:1,dvo:1,fin:1};
+  const c=(k,v,txt)=>'<td contenteditable="true" data-k="'+k+'" data-d="'+D[k]+'" data-p="'+(k==='sku'?0:1)+'" data-v="'+(isNaN(v)?'':v)+'">'+txt+'</td>';
+  return c('cc',o.cc*100,pct(o.cc,0))+c('sr',o.sr*100,pct(o.sr,0))+c('sku',o.sku,num(o.sku,1))
+    +c('dvo',o.dvo*100,pct(o.dvo,1))+c('fin',o.fin*100,pct(o.fin,1));
+}
+const KEYS=['cc','sr','sku','dvo','fin'];
+function applyColors(){
+  KEYS.forEach(k=>{
+    const raw=document.getElementById('th_'+k).value;
+    const th=parseFloat(raw);
+    document.querySelectorAll('td[data-k="'+k+'"]').forEach(td=>{
+      const v=parseFloat(td.dataset.v);
+      const bad=raw!==''&&!isNaN(th)&&!isNaN(v)&&(k==='fin'?v>th:v<th);
+      td.classList.toggle('lr',bad);
+    });
+  });
+}
+KEYS.forEach(k=>{
+  const el=document.getElementById('th_'+k);
+  try{const sv=localStorage.getItem('th_'+k);if(sv!==null)el.value=sv;}catch(_){}
+  el.addEventListener('input',()=>{try{localStorage.setItem('th_'+k,el.value);}catch(_){} applyColors();});
+});
+
 function build(tableId,label,rows){
   const d=todayStr();
   const H=['Date',label,'Call Completion','Strike Rate','SKU/Invoice','Order Vs Delivery','Full in','Dropage','WEC'];
   let h='<tr>'+H.map((x,i)=>'<th'+(i<2?' class="l"':'')+'>'+x+'</th>').join('')+'</tr>';
   rows.forEach(r=>{
-    h+='<tr><td class="l">'+d+'</td><td class="l" contenteditable="true">'+r.name+'</td>'
-      +'<td>'+pct(r.cc,0)+'</td><td>'+pct(r.sr,0)+'</td><td>'+num(r.sku,1)+'</td>'
-      +'<td>'+pct(r.dvo,1)+'</td><td>'+pct(r.fin,1)+'</td>'
+    h+='<tr><td class="l" contenteditable="true">'+d+'</td><td class="l" contenteditable="true">'+r.name+'</td>'
+      +kpis(r)
       +'<td class="drop" contenteditable="true"></td><td class="wec" contenteditable="true"></td></tr>';
   });
   const t=avgOf(rows);
   h+='<tr class="tot"><td class="l" colspan="2">Total</td>'
-    +'<td>'+pct(t.cc,0)+'</td><td>'+pct(t.sr,0)+'</td><td>'+num(t.sku,1)+'</td>'
-    +'<td>'+pct(t.dvo,1)+'</td><td>'+pct(t.fin,1)+'</td>'
+    +kpis(t)
     +'<td class="sd">0</td><td class="sw">0</td></tr>';
   const tb=document.getElementById(tableId);
   tb.innerHTML=h;
   const sum=cls=>{let s=0;tb.querySelectorAll('td.'+cls).forEach(td=>{const v=parseFloat(td.textContent.replace(/,/g,''));if(!isNaN(v))s+=v;});return s;};
-  tb.oninput=()=>{tb.querySelector('td.sd').textContent=sum('drop');tb.querySelector('td.sw').textContent=sum('wec');};
+  tb.oninput=e=>{
+    tb.querySelector('td.sd').textContent=sum('drop');tb.querySelector('td.sw').textContent=sum('wec');
+    const td=e.target.closest?e.target.closest('td'):null;
+    if(td&&td.dataset.k&&!td.parentElement.classList.contains('tot')){
+      td.dataset.v=parseFloat(td.textContent.replace(/[%,\s]/g,''));
+      const k=td.dataset.k,vals=[];
+      tb.querySelectorAll('tr:not(.tot) td[data-k="'+k+'"]').forEach(x=>{const v=parseFloat(x.dataset.v);if(!isNaN(v))vals.push(v);});
+      const tt=tb.querySelector('tr.tot td[data-k="'+k+'"]');
+      if(tt&&vals.length){const av=vals.reduce((a,b)=>a+b,0)/vals.length;
+        tt.dataset.v=av;tt.textContent=av.toFixed(+tt.dataset.d)+(tt.dataset.p==='1'?'%':'');}
+    }
+    applyColors();
+  };
 }
 
 document.getElementById('f').addEventListener('change',async e=>{
@@ -111,6 +157,7 @@ document.getElementById('f').addEventListener('change',async e=>{
     build('t1','PSR Name',psr);
     const sdo=Object.keys(SDM).map(n=>Object.assign({name:n},avgOf(psr.filter(p=>SDM[n].includes(p.id)))));
     build('t2','SDO',sdo);
+    applyColors();
     document.getElementById('out').style.display='block';
   }catch(err){msg.textContent='Error: '+err.message;}
 });
