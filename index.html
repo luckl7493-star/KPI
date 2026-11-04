@@ -3,18 +3,42 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Sale Raw & Pack Brand</title>
+<title>Mehar Munir Brother — Tools</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
+/* ===== GLOBAL ===== */
 :root{--bg:#fff;--panel:#F5F7F9;--line:#DCE1E6;--ink:#14181A;--muted:#68716C;--a:#0B5CAD;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14181B;--panel:#1D2226;--line:#2C343A;--ink:#F1F4F6;--muted:#9AA5AD;--a:#4C9BEA;}}
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14181B;--panel:#1D2226;--line:#2C343A;--ink:#F1F4F6;--muted:#9AA5AD;--a:#4C9BEA;}}
 :root[data-theme="dark"]{--bg:#14181B;--panel:#1D2226;--line:#2C343A;--ink:#F1F4F6;--muted:#9AA5AD;--a:#4C9BEA;}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,-apple-system,Segoe UI,Arial,sans-serif}
-header{background:linear-gradient(90deg,var(--g0,#001F4D),var(--g1,#0B5CAD));color:#fff;padding:18px 22px}
-header h1{margin:0;font-size:20px}header p{margin:4px 0 0;font-size:12px;opacity:.85}
+
+/* ===== TOP NAV ===== */
+nav{background:linear-gradient(90deg,#001F4D,#0B5CAD);display:flex;align-items:stretch;padding:0;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+nav .brand{color:#fff;font-weight:700;font-size:15px;padding:14px 18px;white-space:nowrap;flex:1}
+nav .nav-btn{border:none;background:transparent;color:rgba(255,255,255,.75);font-size:13px;font-weight:600;padding:0 18px;cursor:pointer;border-bottom:3px solid transparent;transition:.15s;white-space:nowrap}
+nav .nav-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+nav .nav-btn.active{color:#fff;border-bottom:3px solid #FFD700}
+
+/* ===== PAGES ===== */
+.page{display:none}.page.active{display:block}
+
+/* ===== HOME PAGE ===== */
+.home-wrap{max-width:700px;margin:60px auto;padding:24px;text-align:center}
+.home-wrap h1{font-size:28px;margin:0 0 8px}
+.home-wrap p{color:var(--muted);margin:0 0 40px;font-size:15px}
+.home-cards{display:grid;grid-template-columns:1fr 1fr;gap:18px;text-align:left}
+.home-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px;cursor:pointer;transition:.15s;user-select:none}
+.home-card:hover{border-color:var(--a);box-shadow:0 0 0 2px var(--a)}
+.home-card .icon{font-size:34px;margin-bottom:12px}
+.home-card h2{margin:0 0 6px;font-size:16px}
+.home-card p{margin:0;font-size:13px;color:var(--muted)}
+@media(max-width:500px){.home-cards{grid-template-columns:1fr}}
+
+/* ===== SALE RAW PAGE ===== */
 .wrap{max-width:1100px;margin:0 auto;padding:18px}
 .drop{border:2px dashed var(--a);border-radius:12px;padding:26px;text-align:center;background:var(--panel);cursor:pointer}
 .drop small{display:block;color:var(--muted);margin-top:6px}
@@ -22,64 +46,163 @@ header h1{margin:0;font-size:20px}header p{margin:4px 0 0;font-size:12px;opacity
 .btn{border:none;border-radius:8px;padding:10px 14px;font-weight:700;font-size:13px;cursor:pointer;background:var(--a);color:#fff}
 .btn.alt{background:var(--bg);color:var(--a);border:1px solid var(--a)}
 .tg{font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center}
-select,input[type=text]{padding:7px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;font-size:13px}
+select,input[type=number],input[type=text]{padding:7px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;font-size:13px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px;overflow-x:auto}
-h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;margin:0 0 10px}
+h2.sec{font-size:13px;text-transform:uppercase;letter-spacing:.06em;margin:0 0 10px}
 .kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
 .k{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:12px;color:var(--muted)}
 .k b{display:block;font-size:24px;color:var(--ink);font-family:ui-monospace,Menlo,monospace}
-table{border-collapse:collapse;width:100%;font-size:13px}
-th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;white-space:nowrap}
-th{background:var(--hd,#0070C0);color:#fff}td.n{text-align:right}td.low{background:#F8C9C9;color:#7A1010;font-weight:700}tr.tot td{font-weight:700;background:var(--tot,#EAF2FA);color:var(--ink)}
-#msg{font-size:13px;color:var(--a);font-weight:600;min-height:18px}
+.sale-tbl{border-collapse:collapse;width:100%;font-size:13px}
+.sale-tbl th,.sale-tbl td{border:1px solid var(--line);padding:6px 9px;text-align:left;white-space:nowrap}
+.sale-tbl th{background:var(--hd,#0070C0);color:#fff}
+.sale-tbl td.n{text-align:right}
+.sale-tbl td.low{background:#F8C9C9;color:#7A1010;font-weight:700}
+.sale-tbl tr.tot td{font-weight:700;background:var(--tot,#EAF2FA);color:var(--ink)}
+#smsg{font-size:13px;color:var(--a);font-weight:600;min-height:18px}
 .imgs img{max-width:100%;border:1px solid var(--line);border-radius:8px;background:#fff;margin-bottom:8px}
 .hid{display:none}
-@media (max-width:640px){.wrap{padding:12px}.btn{flex:1 1 46%;padding:12px 8px}.tg{flex:1 1 100%}.card{padding:10px}table{font-size:12px}th,td{padding:5px 7px}td:first-child,th:first-child{position:sticky;left:0;z-index:1}td:first-child{background:var(--bg)}tr.tot td:first-child{background:var(--tot,#EAF2FA)}.tg select{flex:1;min-width:0}}
+@media(max-width:640px){.wrap{padding:12px}.btn{flex:1 1 46%;padding:12px 8px}.tg{flex:1 1 100%}.card{padding:10px}.sale-tbl{font-size:12px}.sale-tbl th,.sale-tbl td{padding:5px 7px}.sale-tbl td:first-child,.sale-tbl th:first-child{position:sticky;left:0;z-index:1}.sale-tbl td:first-child{background:var(--bg)}.sale-tbl tr.tot td:first-child{background:var(--tot,#EAF2FA)}.tg select{flex:1;min-width:0}}
+
+/* ===== KPI PAGE ===== */
+#kpi-page{padding:12px;background:#fff;color:#000;font-family:Calibri,Arial,sans-serif}
+.kbar{border:1px solid #999;border-radius:8px;padding:12px;margin-bottom:14px}
+.kbar input{font-size:15px;max-width:100%}
+.kmsg{color:#a00;font-size:14px;margin-top:6px}
+.kcard{background:#fff;padding:8px}
+.kwrap{overflow-x:auto}
+.ktbl{border-collapse:collapse;min-width:820px;width:100%;font-size:15px;background:#fff}
+.ktbl th,.ktbl td{border:1px solid #000;padding:5px 9px;text-align:center;white-space:nowrap;color:#000;background:#fff}
+.ktbl th{font-weight:700}
+.ktbl td.l,.ktbl th.l{text-align:left}
+.ktbl td[contenteditable]{outline:none;min-width:60px}
+.ktbl tr.tot td{font-weight:700}
+.blue .ktbl th,.blue .ktbl tr.tot td{background:#cfe2f3}
+.ktbl td.lr{background:#ffc7ce;color:#9c0006}
+.kset{border:1px solid #999;border-radius:8px;padding:10px;margin-bottom:14px;font-size:14px}
+.kset label{display:inline-block;margin:4px 10px 4px 0}
+.kset input{width:62px;font-size:15px;padding:3px}
+.kbtn{font-size:15px;padding:8px 14px;margin-top:10px;border:1px solid #555;border-radius:6px;background:#fff;color:#000;cursor:pointer}
 </style>
 </head>
 <body>
-<header><h1>Sale Raw & Pack & Brand</h1><p>Upload the Sales Orders Dump Excel (Data sheet). Both reports are built for you, with images.</p></header>
-<div class="wrap">
-  <div class="drop" id="drop"><b>📂 Click here or drop the Sales Orders Dump Excel</b><small>The file stays in your browser and is not uploaded anywhere.</small></div>
-  <input type="file" id="file" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" class="hid">
-  <div id="msg"></div>
-  <div id="app" class="hid">
-    <div class="bar">
-      <label class="tg">Date <select id="fd"></select></label>
-      <label class="tg">SDM <select id="fs"></select></label>
-      <span class="tg" id="sts"></span>
-      <label class="tg"><input type="checkbox" id="cS"> Include Competition Route in Sale Raw</label>
-      <label class="tg"><input type="checkbox" id="cP" checked> Include Competition Route in Pack & Brand</label>
-      <label class="tg">Sale Raw target (cases) <input type="number" id="tg" value="200" style="width:80px"></label>
-      <label class="tg">Theme <select id="th"><option value="teal">Teal</option><option value="blue">Blue</option><option value="green">Green</option><option value="orange">Orange</option><option value="dark">Dark</option></select></label>
-      <label class="tg">Pack & Brand image <select id="pf"><option value="m">Matrix (Excel style)</option><option value="c">Compact (phone friendly)</option></select></label>
-      <label class="tg"><input type="checkbox" id="auto" checked> Auto-generate images</label>
+
+<!-- TOP NAV -->
+<nav>
+  <span class="brand">📊 Mehar Munir Brother</span>
+  <button class="nav-btn active" onclick="showPage('home',this)">🏠 Home</button>
+  <button class="nav-btn" onclick="showPage('sale',this)">📦 Sale Raw</button>
+  <button class="nav-btn" onclick="showPage('kpi',this)">📋 SDO KPI</button>
+</nav>
+
+<!-- ===== HOME PAGE ===== -->
+<div id="home-page" class="page active">
+  <div class="home-wrap">
+    <h1>Sales Tools</h1>
+    <p>Mehar Munir Brother — apna tool chunein</p>
+    <div class="home-cards">
+      <div class="home-card" onclick="showPage('sale',document.querySelectorAll('.nav-btn')[1])">
+        <div class="icon">📦</div>
+        <h2>Sale Raw & Pack Brand</h2>
+        <p>Sales Orders Dump Excel upload karo — Route wise aur Pack/Brand wise report bane gi with images.</p>
+      </div>
+      <div class="home-card" onclick="showPage('kpi',document.querySelectorAll('.nav-btn')[2])">
+        <div class="icon">📋</div>
+        <h2>SDO wise KPI</h2>
+        <p>R320 file upload karo — PSR aur SDO wise KPI table bane gi, share aur copy ke saath.</p>
+      </div>
     </div>
-    <div class="kp" id="kp"></div>
-    <div class="card"><h2>Sale Raw (cases by route)</h2><table id="t1"></table></div>
-    <div class="card"><h2>Pack & Brand (cases)</h2><table id="t2"></table></div>
-    <div class="bar">
-      <button class="btn" id="mk">Generate images</button>
-      <button class="btn alt" id="d1">Download Sale Raw image</button>
-      <button class="btn alt" id="d2">Download Pack & Brand image</button>
-      <button class="btn alt" id="c1">Copy Sale Raw image</button>
-      <button class="btn alt" id="c2">Copy Pack & Brand image</button>
-      <button class="btn" id="s1">Share Sale Raw</button>
-      <button class="btn" id="s2">Share Pack & Brand</button>
-      <button class="btn alt" id="dx">Download Excel</button>
-    </div>
-    <div class="card imgs" id="imgs"><h2>Images</h2><div id="ih" style="color:var(--muted);font-size:13px">Press "Generate images".</div></div>
   </div>
 </div>
+
+<!-- ===== SALE RAW PAGE ===== -->
+<div id="sale-page" class="page">
+  <div class="wrap">
+    <div class="drop" id="sdrop"><b>📂 Click here or drop the Sales Orders Dump Excel</b><small>The file stays in your browser and is not uploaded anywhere.</small></div>
+    <input type="file" id="sfile" accept=".xlsx,.xls" class="hid">
+    <div id="smsg"></div>
+    <div id="sapp" class="hid">
+      <div class="bar">
+        <label class="tg">Date <select id="fd"></select></label>
+        <label class="tg">SDM <select id="fs"></select></label>
+        <span class="tg" id="sts"></span>
+        <label class="tg"><input type="checkbox" id="cS"> Include Competition Route in Sale Raw</label>
+        <label class="tg"><input type="checkbox" id="cP" checked> Include Competition Route in Pack &amp; Brand</label>
+        <label class="tg">Sale Raw target (cases) <input type="number" id="tg" value="200" style="width:80px"></label>
+        <label class="tg">Theme <select id="th"><option value="teal">Teal</option><option value="blue">Blue</option><option value="green">Green</option><option value="orange">Orange</option><option value="dark">Dark</option></select></label>
+        <label class="tg">Pack &amp; Brand image <select id="pf"><option value="m">Matrix (Excel style)</option><option value="c">Compact (phone friendly)</option></select></label>
+        <label class="tg"><input type="checkbox" id="auto" checked> Auto-generate images</label>
+      </div>
+      <div class="kp" id="kp"></div>
+      <div class="card"><h2 class="sec">Sale Raw (cases by route)</h2><table class="sale-tbl" id="t1"></table></div>
+      <div class="card"><h2 class="sec">Pack &amp; Brand (cases)</h2><table class="sale-tbl" id="t2"></table></div>
+      <div class="bar">
+        <button class="btn" id="mk">Generate images</button>
+        <button class="btn alt" id="d1">Download Sale Raw image</button>
+        <button class="btn alt" id="d2">Download Pack &amp; Brand image</button>
+        <button class="btn alt" id="c1">Copy Sale Raw image</button>
+        <button class="btn alt" id="c2">Copy Pack &amp; Brand image</button>
+        <button class="btn" id="s1">Share Sale Raw</button>
+        <button class="btn" id="s2">Share Pack &amp; Brand</button>
+        <button class="btn alt" id="dx">Download Excel</button>
+      </div>
+      <div class="card imgs" id="imgs"><h2 class="sec">Images</h2><div id="ih" style="color:var(--muted);font-size:13px">Press "Generate images".</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== KPI PAGE ===== -->
+<div id="kpi-page" class="page">
+  <div class="kbar">
+    <b>R320 file upload karo (.xlsx)</b><br><br>
+    <input type="file" id="kf" accept=".xlsx,.xls,.csv">
+    <div class="kmsg" id="kmsg"></div>
+    <button class="kbtn" id="krestore" style="display:none" onclick="restoreAll()">Last saved wali tables kholo</button>
+  </div>
+  <div id="kout" style="display:none">
+    <div class="kset"><button class="kbtn" style="margin:0" onclick="saveAll()">Save</button> <span id="savemsg"></span></div>
+    <div class="kset">
+      <b>Target % (isse kam ho to light red)</b><br>
+      <label>Call Completion <input type="number" step="any" id="th_cc"></label>
+      <label>Strike Rate <input type="number" step="any" id="th_sr"></label>
+      <label>SKU/Invoice <input type="number" step="any" id="th_sku"></label>
+      <label>Order Vs Delivery <input type="number" step="any" id="th_dvo"></label>
+      <label>Full in (isse zyada ho to red) <input type="number" step="any" id="th_fin"></label>
+    </div>
+    <div id="card1" class="kcard blue">
+      <h2>PJP wise KPI</h2>
+      <div class="kwrap"><table class="ktbl" id="kt1"></table></div>
+    </div>
+    <button class="kbtn" onclick="shareImg('card1')">Image share</button>
+    <button class="kbtn" onclick="copyImg('card1')">Image copy</button>
+    <div id="card2" class="kcard blue" style="margin-top:24px">
+      <h2>SDO wise KPI</h2>
+      <div class="kwrap"><table class="ktbl" id="kt2"></table></div>
+    </div>
+    <button class="kbtn" onclick="shareImg('card2')">Image share</button>
+    <button class="kbtn" onclick="copyImg('card2')">Image copy</button>
+  </div>
+</div>
+
 <script>
+/* ===== PAGE SWITCHER ===== */
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id+'-page').classList.add('active');
+  if(btn)btn.classList.add('active');
+}
+
+/* =====================================================
+   SALE RAW TOOL
+===================================================== */
 const $=id=>document.getElementById(id);
 const B0={bg:'#fff',cell:'#fff',ink:'#000',ink2:'#333',line:'#3A3F45',lowF:'#F8C9C9',lowC:'#7A1010'};
 const THEMES={
- teal:Object.assign({head:'#0E7C86',tot:'#DDF1F2',tot2:'#EEF8F8',g0:'#04343A',g1:'#0E7C86'},B0),
- blue:Object.assign({head:'#0070C0',tot:'#EAF2FA',tot2:'#F3F7FB',g0:'#00133A',g1:'#0B66B8'},B0),
- green:Object.assign({head:'#1B7A3E',tot:'#E3F1E8',tot2:'#F0F7F2',g0:'#0A3D1E',g1:'#1B7A3E'},B0),
- orange:Object.assign({head:'#D9731A',tot:'#FDEBD6',tot2:'#FEF5EA',g0:'#6B3300',g1:'#D9731A'},B0),
- dark:{head:'#0B5CAD',tot:'#3A4550',tot2:'#2F3841',g0:'#000000',g1:'#23405F',bg:'#1B2026',cell:'#262D34',ink:'#F1F4F6',ink2:'#B8C2CA',line:'#7A8791',lowF:'#8A2B2B',lowC:'#FFFFFF'}
+  teal:Object.assign({head:'#0E7C86',tot:'#DDF1F2',tot2:'#EEF8F8',g0:'#04343A',g1:'#0E7C86'},B0),
+  blue:Object.assign({head:'#0070C0',tot:'#EAF2FA',tot2:'#F3F7FB',g0:'#00133A',g1:'#0B66B8'},B0),
+  green:Object.assign({head:'#1B7A3E',tot:'#E3F1E8',tot2:'#F0F7F2',g0:'#0A3D1E',g1:'#1B7A3E'},B0),
+  orange:Object.assign({head:'#D9731A',tot:'#FDEBD6',tot2:'#FEF5EA',g0:'#6B3300',g1:'#D9731A'},B0),
+  dark:{head:'#0B5CAD',tot:'#3A4550',tot2:'#2F3841',g0:'#000000',g1:'#23405F',bg:'#1B2026',cell:'#262D34',ink:'#F1F4F6',ink2:'#B8C2CA',line:'#7A8791',lowF:'#8A2B2B',lowC:'#FFFFFF'}
 };
 let TM=THEMES.teal;
 function applyTheme(){
@@ -97,21 +220,17 @@ const isComp=r=>/competition/i.test(r.pjp);
 const T=()=>+$('tg').value||0;
 const low=v=>Math.round(v*100)/100<T();
 applyTheme();
-$('drop').onclick=()=>$('file').click();
-$('drop').ondragover=e=>e.preventDefault();
-$('drop').ondrop=e=>{e.preventDefault();if(e.dataTransfer.files[0])load(e.dataTransfer.files[0]);};
-$('file').onchange=e=>{if(e.target.files[0])load(e.target.files[0]);};
+$('sdrop').onclick=()=>$('sfile').click();
+$('sdrop').ondragover=e=>e.preventDefault();
+$('sdrop').ondrop=e=>{e.preventDefault();if(e.dataTransfer.files[0])sload(e.dataTransfer.files[0]);};
+$('sfile').onchange=e=>{if(e.target.files[0])sload(e.target.files[0]);};
 
-async function load(f){
-  $('msg').textContent='Reading file…';
+async function sload(f){
+  $('smsg').textContent='Reading file…';
   try{
     const wb=XLSX.read(await f.arrayBuffer(),{type:'array',cellDates:true});
     let rows=null;
-    for(const n of ['Data',...wb.SheetNames]){
-      const ws=wb.Sheets[n];if(!ws)continue;
-      const a=XLSX.utils.sheet_to_json(ws,{defval:''});
-      if(a.length&&'SDO_CASES' in a[0]&&'PJP_LABEL' in a[0]){rows=a;break;}
-    }
+    for(const n of['Data',...wb.SheetNames]){const ws=wb.Sheets[n];if(!ws)continue;const a=XLSX.utils.sheet_to_json(ws,{defval:''});if(a.length&&'SDO_CASES' in a[0]&&'PJP_LABEL' in a[0]){rows=a;break;}}
     if(!rows)throw new Error('Data sheet with SDO_CASES / PJP_LABEL columns not found');
     const dt=v=>v instanceof Date?new Date(v.getTime()-v.getTimezoneOffset()*60000).toISOString().slice(0,10):String(v).slice(0,10);
     ALL=rows.map(r=>({pjp:String(r.PJP_LABEL).trim(),pack:String(r.SDO_PACKAGE_LABEL).trim(),brand:String(r.SDO_BRAND_LABEL).trim(),cases:+r.SDO_CASES||0,status:String(r.ORDER_STATUS).trim()||'—',sdm:String(r.SD_TDM_NAME).trim()||'—',date:dt(r.SD_CREATED_ON_DATE),dist:String(r.SD_DISTRIBUTOR_LABEL||'')})).filter(r=>r.pjp&&r.pack&&r.brand);
@@ -121,45 +240,26 @@ async function load(f){
     fill($('fd'),[...new Set(ALL.map(r=>r.date))].sort());
     fill($('fs'),[...new Set(ALL.map(r=>r.sdm))].sort());
     $('sts').innerHTML='';
-    [...new Set(ALL.map(r=>r.status))].sort().forEach(s=>{
-      const l=document.createElement('label');l.className='tg';
-      const c=document.createElement('input');c.type='checkbox';c.className='st';c.value=s;c.checked=true;c.onchange=refresh;
-      l.appendChild(c);l.appendChild(document.createTextNode(' '+s));$('sts').appendChild(l);
-    });
-    $('app').classList.remove('hid');
-    $('msg').textContent='Loaded '+f.name+' — '+ALL.length+' rows';
+    [...new Set(ALL.map(r=>r.status))].sort().forEach(s=>{const l=document.createElement('label');l.className='tg';const c=document.createElement('input');c.type='checkbox';c.className='st';c.value=s;c.checked=true;c.onchange=refresh;l.appendChild(c);l.appendChild(document.createTextNode(' '+s));$('sts').appendChild(l);});
+    $('sapp').classList.remove('hid');
+    $('smsg').textContent='Loaded '+f.name+' — '+ALL.length+' rows';
     refresh();
-  }catch(e){$('msg').textContent='Error: '+e.message;}
+  }catch(e){$('smsg').textContent='Error: '+e.message;}
 }
-function sel(){
-  const d=$('fd').value,s=$('fs').value,st=[...document.querySelectorAll('.st:checked')].map(x=>x.value);
-  return ALL.filter(r=>(d==='All'||r.date===d)&&(s==='All'||r.sdm===s)&&st.includes(r.status));
-}
-function sale(){
-  const m=new Map();
-  sel().forEach(r=>{if(!$('cS').checked&&isComp(r))return;m.set(r.pjp,(m.get(r.pjp)||0)+r.cases);});
-  const rows=[...m].sort((a,b)=>cmp(a[0],b[0]));
-  return{rows,tot:rows.reduce((s,x)=>s+x[1],0)};
-}
-function pack(){
-  const mt=new Map(),bs=new Set();
-  sel().forEach(r=>{if(!$('cP').checked&&isComp(r))return;bs.add(r.brand);if(!mt.has(r.pack))mt.set(r.pack,new Map());const m=mt.get(r.pack);m.set(r.brand,(m.get(r.brand)||0)+r.cases);});
-  const B=[...bs].sort(cmp),P=[...mt.keys()].sort(cmp);
-  const rows=P.map(p=>{const m=mt.get(p),vals=B.map(b=>m.get(b)||0);return{p,vals,t:vals.reduce((a,b)=>a+b,0)};});
-  const ct=B.map((b,i)=>rows.reduce((s,r)=>s+r.vals[i],0));
-  return{B,rows,ct,tot:ct.reduce((a,b)=>a+b,0)};
-}
-function cell(tr,v,cls,tag){const e=document.createElement(tag||'td');e.textContent=v;if(cls)e.className=cls;tr.appendChild(e);}
+function ssel(){const d=$('fd').value,s=$('fs').value,st=[...document.querySelectorAll('.st:checked')].map(x=>x.value);return ALL.filter(r=>(d==='All'||r.date===d)&&(s==='All'||r.sdm===s)&&st.includes(r.status));}
+function sale(){const m=new Map();ssel().forEach(r=>{if(!$('cS').checked&&isComp(r))return;m.set(r.pjp,(m.get(r.pjp)||0)+r.cases);});const rows=[...m].sort((a,b)=>cmp(a[0],b[0]));return{rows,tot:rows.reduce((s,x)=>s+x[1],0)};}
+function pack(){const mt=new Map(),bs=new Set();ssel().forEach(r=>{if(!$('cP').checked&&isComp(r))return;bs.add(r.brand);if(!mt.has(r.pack))mt.set(r.pack,new Map());const m=mt.get(r.pack);m.set(r.brand,(m.get(r.brand)||0)+r.cases);});const B=[...bs].sort(cmp),P=[...mt.keys()].sort(cmp);const rows=P.map(p=>{const m=mt.get(p),vals=B.map(b=>m.get(b)||0);return{p,vals,t:vals.reduce((a,b)=>a+b,0)};});const ct=B.map((b,i)=>rows.reduce((s,r)=>s+r.vals[i],0));return{B,rows,ct,tot:ct.reduce((a,b)=>a+b,0)};}
+function scell(tr,v,cls,tag){const e=document.createElement(tag||'td');e.textContent=v;if(cls)e.className=cls;tr.appendChild(e);}
 function refresh(){
   const s=sale(),p=pack();
   $('kp').innerHTML='';
   [['Sale Raw cases',fmt(s.tot)],['Pack & Brand cases',fmt(p.tot)],['Routes',s.rows.length],['Packages',p.rows.length],['Brands',p.B.length]].forEach(a=>{const d=document.createElement('div');d.className='k';d.textContent=a[0];const b=document.createElement('b');b.textContent=a[1];d.appendChild(b);$('kp').appendChild(d);});
-  const t1=$('t1');t1.innerHTML='';let tr=document.createElement('tr');['PJP_LABEL','Sum of SDO_CASES','Share'].forEach(x=>cell(tr,x,'','th'));t1.appendChild(tr);
-  s.rows.forEach(r=>{tr=document.createElement('tr');cell(tr,r[0]);cell(tr,fmt(r[1]),'n'+(low(r[1])?' low':''));cell(tr,s.tot?(r[1]/s.tot*100).toFixed(1)+'%':'','n');t1.appendChild(tr);});
-  tr=document.createElement('tr');tr.className='tot';cell(tr,'Grand Total');cell(tr,fmt(s.tot),'n');cell(tr,'100%','n');t1.appendChild(tr);
-  const t2=$('t2');t2.innerHTML='';tr=document.createElement('tr');['Package \\ Brand',...p.B,'Grand Total'].forEach(x=>cell(tr,x,'','th'));t2.appendChild(tr);
-  p.rows.forEach(r=>{tr=document.createElement('tr');cell(tr,r.p);r.vals.forEach(v=>cell(tr,v?fmt(v):'','n'));cell(tr,fmt(r.t),'n');t2.appendChild(tr);});
-  tr=document.createElement('tr');tr.className='tot';cell(tr,'Grand Total');p.ct.forEach(v=>cell(tr,fmt(v),'n'));cell(tr,fmt(p.tot),'n');t2.appendChild(tr);
+  const t1=$('t1');t1.innerHTML='';let tr=document.createElement('tr');['PJP_LABEL','Sum of SDO_CASES','Share'].forEach(x=>scell(tr,x,'','th'));t1.appendChild(tr);
+  s.rows.forEach(r=>{tr=document.createElement('tr');scell(tr,r[0]);scell(tr,fmt(r[1]),'n'+(low(r[1])?' low':''));scell(tr,s.tot?(r[1]/s.tot*100).toFixed(1)+'%':'','n');t1.appendChild(tr);});
+  tr=document.createElement('tr');tr.className='tot';scell(tr,'Grand Total');scell(tr,fmt(s.tot),'n');scell(tr,'100%','n');t1.appendChild(tr);
+  const t2=$('t2');t2.innerHTML='';tr=document.createElement('tr');['Package \\ Brand',...p.B,'Grand Total'].forEach(x=>scell(tr,x,'','th'));t2.appendChild(tr);
+  p.rows.forEach(r=>{tr=document.createElement('tr');scell(tr,r.p);r.vals.forEach(v=>scell(tr,v?fmt(v):'','n'));scell(tr,fmt(r.t),'n');t2.appendChild(tr);});
+  tr=document.createElement('tr');tr.className='tot';scell(tr,'Grand Total');p.ct.forEach(v=>scell(tr,fmt(v),'n'));scell(tr,fmt(p.tot),'n');t2.appendChild(tr);
   if($('auto').checked)makeImgs();
 }
 $('th').onchange=()=>{applyTheme();refresh();};
@@ -167,99 +267,26 @@ $('th').onchange=()=>{applyTheme();refresh();};
 
 function mk(W,H){const S=2,c=document.createElement('canvas');c.width=W*S;c.height=H*S;const x=c.getContext('2d');x.scale(S,S);x.fillStyle=TM.bg;x.fillRect(0,0,W,H);x.textBaseline='middle';return{c,x};}
 function dateLbl(){const d=$('fd').value;if(d!=='All')return d.split('-').reverse().join('/');const ds=[...new Set(ALL.map(r=>r.date))].sort();return ds.length?ds[0].split('-').reverse().join('/')+(ds.length>1?' - '+ds[ds.length-1].split('-').reverse().join('/'):''):'';}
-function hdr(x,W,sub){
-  const g=x.createLinearGradient(0,0,W,0);g.addColorStop(0,TM.g0);g.addColorStop(1,TM.g1);x.fillStyle=g;x.fillRect(0,0,W,72);
-  x.fillStyle='#fff';x.textAlign='left';x.font='bold 22px Arial';x.fillText(agency,20,27,W-200);
-  x.font='14px Arial';x.fillText(sub+' · '+($('fs').value==='All'?'All SDMs':$('fs').value),20,52,W-200);
-  x.textAlign='right';x.font='bold 18px Arial';x.fillText(dateLbl(),W-20,36);
-}
-function box(x,cx,y,w,h,t,o){
-  x.fillStyle=o.fill||TM.cell;x.fillRect(cx,y,w,h);x.strokeStyle=TM.line;x.lineWidth=1.5;x.strokeRect(cx,y,w,h);
-  x.fillStyle=o.color||TM.ink;x.font=(o.bold?'bold ':'')+(o.fs||13)+'px Arial';x.textAlign=o.al||'left';
-  const px=o.al==='right'?cx+w-8:o.al==='center'?cx+w/2:cx+8;
-  if(o.wrap&&x.measureText(t).width>w-8&&t.includes(' ')){const wd=t.split(' '),m=Math.ceil(wd.length/2);x.fillText(wd.slice(0,m).join(' '),px,y+h/2-8,w-6);x.fillText(wd.slice(m).join(' '),px,y+h/2+8,w-6);}
-  else x.fillText(t,px,y+h/2+1,w-10);
-}
+function hdr(x,W,sub){const g=x.createLinearGradient(0,0,W,0);g.addColorStop(0,TM.g0);g.addColorStop(1,TM.g1);x.fillStyle=g;x.fillRect(0,0,W,72);x.fillStyle='#fff';x.textAlign='left';x.font='bold 22px Arial';x.fillText(agency,20,27,W-200);x.font='14px Arial';x.fillText(sub+' · '+($('fs').value==='All'?'All SDMs':$('fs').value),20,52,W-200);x.textAlign='right';x.font='bold 18px Arial';x.fillText(dateLbl(),W-20,36);}
+function box(x,cx,y,w,h,t,o){x.fillStyle=o.fill||TM.cell;x.fillRect(cx,y,w,h);x.strokeStyle=TM.line;x.lineWidth=1.5;x.strokeRect(cx,y,w,h);x.fillStyle=o.color||TM.ink;x.font=(o.bold?'bold ':'')+(o.fs||13)+'px Arial';x.textAlign=o.al||'left';const px=o.al==='right'?cx+w-8:o.al==='center'?cx+w/2:cx+8;if(o.wrap&&x.measureText(t).width>w-8&&t.includes(' ')){const wd=t.split(' '),m=Math.ceil(wd.length/2);x.fillText(wd.slice(0,m).join(' '),px,y+h/2-8,w-6);x.fillText(wd.slice(m).join(' '),px,y+h/2+8,w-6);}else x.fillText(t,px,y+h/2+1,w-10);}
 const HEAD={get fill(){return TM.head},color:'#fff',bold:1},TOT={get fill(){return TM.tot},get color(){return TM.ink},bold:1};
-function drawSale(){
-  const d=sale(),W=720,RH=34,H=72+22+RH*(d.rows.length+2)+50,{c,x}=mk(W,H);hdr(x,W,'Sale Raw');
-  const cw=[300,120,90,170];let y=94,cx;
-  const row=(v,o,bar)=>{cx=20;v.forEach((t,i)=>{box(x,cx,y,cw[i],RH,t,Object.assign({al:i===0?'left':'right'},o,o.cellFill&&o.cellFill[i]?{fill:TM.lowF,color:TM.lowC,bold:1}:{}));cx+=cw[i];});
-    if(bar!==undefined){x.fillStyle=TM.head;x.fillRect(20+cw[0]+cw[1]+cw[2]+8,y+9,Math.max(2,(cw[3]-16)*bar),RH-18);}y+=RH;};
-  row(['PJP_LABEL','Sum of SDO_CASES','Share',''],HEAD);
-  const mx=Math.max(1,...d.rows.map(r=>r[1]));
-  d.rows.forEach(r=>row([r[0],fmt(r[1]),d.tot?(r[1]/d.tot*100).toFixed(1)+'%':'',''],{cellFill:[0,low(r[1])]},r[1]/mx));
-  row(['Grand Total',fmt(d.tot),'100%',''],TOT);
-  x.fillStyle=TM.lowF;x.fillRect(20,y+12,14,14);x.strokeStyle=TM.line;x.strokeRect(20,y+12,14,14);
-  x.fillStyle=TM.ink2;x.font='12px Arial';x.textAlign='left';x.fillText('Below target: '+T()+' cases',42,y+19);
-  return c;
-}
-function drawPackM(){
-  const d=pack(),nb=d.B.length,c0=190,cb=82,ct=92,W=40+c0+nb*cb+ct,RH=32,HH=46,H=72+22+HH+RH*(d.rows.length+1)+22,{c,x}=mk(W,H);hdr(x,W,'Pack & Brand');
-  let y=94,cx=20;
-  box(x,cx,y,c0,HH,'Package',Object.assign({fs:12},HEAD));cx+=c0;
-  d.B.forEach(b=>{box(x,cx,y,cb,HH,b,Object.assign({fs:11,al:'center',wrap:1},HEAD));cx+=cb;});
-  box(x,cx,y,ct,HH,'Grand Total',Object.assign({fs:12,al:'center'},HEAD));y+=HH;
-  const line=(label,vals,t,o)=>{cx=20;box(x,cx,y,c0,RH,label,Object.assign({fs:12},o));cx+=c0;vals.forEach(v=>{box(x,cx,y,cb,RH,v?fmt(v):'',Object.assign({fs:12,al:'right'},o));cx+=cb;});box(x,cx,y,ct,RH,fmt(t),Object.assign({fs:12,al:'right',bold:1,fill:o.fill||TM.tot2},o));y+=RH;};
-  d.rows.forEach(r=>line(r.p,r.vals,r.t,{}));
-  line('Grand Total',d.ct,d.tot,TOT);
-  return c;
-}
-function drawPackC(){
-  const d=pack(),W=720,RH=34,H=72+22+RH*(d.rows.length+2)+30+RH*(d.B.length+2)+22,o=mk(W,H),x=o.x;
-  hdr(x,W,'Pack & Brand');
-  const cw=[300,120,90,170],pc=Math.max(1,...d.rows.map(r=>r.t)),bc=Math.max(1,...d.ct);
-  let y=94;
-  const row=(v,fo,bar)=>{let cx=20;v.forEach((t,i)=>{box(x,cx,y,cw[i],RH,t,Object.assign({al:i===0?'left':'right'},fo));cx+=cw[i];});
-    if(bar!==undefined){x.fillStyle=TM.head;x.fillRect(20+cw[0]+cw[1]+cw[2]+8,y+9,Math.max(2,(cw[3]-16)*bar),RH-18);}y+=RH;};
-  const sh=t=>d.tot?(t/d.tot*100).toFixed(1)+'%':'';
-  row(['Package','Cases','Share',''],HEAD);
-  d.rows.forEach(r=>row([r.p,fmt(r.t),sh(r.t),''],{},r.t/pc));
-  row(['Grand Total',fmt(d.tot),'100%',''],TOT);
-  y+=30;
-  row(['Brand','Cases','Share',''],HEAD);
-  d.B.forEach((b,i)=>row([b,fmt(d.ct[i]),sh(d.ct[i]),''],{},d.ct[i]/bc));
-  row(['Grand Total',fmt(d.tot),'100%',''],TOT);
-  return o.c;
-}
+function drawSale(){const d=sale(),W=720,RH=34,H=72+22+RH*(d.rows.length+2)+50,{c,x}=mk(W,H);hdr(x,W,'Sale Raw');const cw=[300,120,90,170];let y=94,cx;const row=(v,o,bar)=>{cx=20;v.forEach((t,i)=>{box(x,cx,y,cw[i],RH,t,Object.assign({al:i===0?'left':'right'},o,o.cellFill&&o.cellFill[i]?{fill:TM.lowF,color:TM.lowC,bold:1}:{}));cx+=cw[i];});if(bar!==undefined){x.fillStyle=TM.head;x.fillRect(20+cw[0]+cw[1]+cw[2]+8,y+9,Math.max(2,(cw[3]-16)*bar),RH-18);}y+=RH;};row(['PJP_LABEL','Sum of SDO_CASES','Share',''],HEAD);const mx=Math.max(1,...d.rows.map(r=>r[1]));d.rows.forEach(r=>row([r[0],fmt(r[1]),d.tot?(r[1]/d.tot*100).toFixed(1)+'%':'',''],{cellFill:[0,low(r[1])]},r[1]/mx));row(['Grand Total',fmt(d.tot),'100%',''],TOT);x.fillStyle=TM.lowF;x.fillRect(20,y+12,14,14);x.strokeStyle=TM.line;x.strokeRect(20,y+12,14,14);x.fillStyle=TM.ink2;x.font='12px Arial';x.textAlign='left';x.fillText('Below target: '+T()+' cases',42,y+19);return c;}
+function drawPackM(){const d=pack(),nb=d.B.length,c0=190,cb=82,ct=92,W=40+c0+nb*cb+ct,RH=32,HH=46,H=72+22+HH+RH*(d.rows.length+1)+22,{c,x}=mk(W,H);hdr(x,W,'Pack & Brand');let y=94,cx=20;box(x,cx,y,c0,HH,'Package',Object.assign({fs:12},HEAD));cx+=c0;d.B.forEach(b=>{box(x,cx,y,cb,HH,b,Object.assign({fs:11,al:'center',wrap:1},HEAD));cx+=cb;});box(x,cx,y,ct,HH,'Grand Total',Object.assign({fs:12,al:'center'},HEAD));y+=HH;const line=(label,vals,t,o)=>{cx=20;box(x,cx,y,c0,RH,label,Object.assign({fs:12},o));cx+=c0;vals.forEach(v=>{box(x,cx,y,cb,RH,v?fmt(v):'',Object.assign({fs:12,al:'right'},o));cx+=cb;});box(x,cx,y,ct,RH,fmt(t),Object.assign({fs:12,al:'right',bold:1,fill:o.fill||TM.tot2},o));y+=RH;};d.rows.forEach(r=>line(r.p,r.vals,r.t,{}));line('Grand Total',d.ct,d.tot,TOT);return c;}
+function drawPackC(){const d=pack(),W=720,RH=34,H=72+22+RH*(d.rows.length+2)+30+RH*(d.B.length+2)+22,o=mk(W,H),x=o.x;hdr(x,W,'Pack & Brand');const cw=[300,120,90,170],pc=Math.max(1,...d.rows.map(r=>r.t)),bc=Math.max(1,...d.ct);let y=94;const row=(v,fo,bar)=>{let cx=20;v.forEach((t,i)=>{box(x,cx,y,cw[i],RH,t,Object.assign({al:i===0?'left':'right'},fo));cx+=cw[i];});if(bar!==undefined){x.fillStyle=TM.head;x.fillRect(20+cw[0]+cw[1]+cw[2]+8,y+9,Math.max(2,(cw[3]-16)*bar),RH-18);}y+=RH;};const sh=t=>d.tot?(t/d.tot*100).toFixed(1)+'%':'';row(['Package','Cases','Share',''],HEAD);d.rows.forEach(r=>row([r.p,fmt(r.t),sh(r.t),''],{},r.t/pc));row(['Grand Total',fmt(d.tot),'100%',''],TOT);y+=30;row(['Brand','Cases','Share',''],HEAD);d.B.forEach((b,i)=>row([b,fmt(d.ct[i]),sh(d.ct[i]),''],{},d.ct[i]/bc));row(['Grand Total',fmt(d.tot),'100%',''],TOT);return o.c;}
 function drawPack(){return $('pf').value==='c'?drawPackC():drawPackM();}
 function frame(c){const x=c.getContext('2d'),W=c.width/2,H=c.height/2;x.strokeStyle=TM.head;x.lineWidth=8;x.strokeRect(4,4,W-8,H-8);}
-function makeImgs(){
-  if(!ALL.length)return;
-  TM=THEMES[$('th').value]||THEMES.teal;
-  const h=$('ih');h.innerHTML='';
-  cv.s=drawSale();cv.p=drawPack();frame(cv.s);frame(cv.p);
-  cv.f={};[['Sale Raw',cv.s,'s'],['Pack & Brand',cv.p,'p']].forEach(([l,c,k])=>{
-    const t=document.createElement('div');t.textContent=l;t.style.cssText='font-weight:700;font-size:12px;margin:8px 0 4px';
-    const im=new Image();im.src=c.toDataURL('image/png');im.alt=l;if(innerWidth<700){im.style.maxWidth='none';im.style.width=(c.width/2)+'px';}c.toBlob(b=>{cv.f[k]=new File([b],fn(k),{type:'image/png'});},'image/png');h.appendChild(t);h.appendChild(im);
-  });
-  const n=document.createElement('div');n.textContent='On mobile: swipe sideways to see the whole image. Press and hold it to save or share.';n.style.cssText='font-size:12px;color:var(--muted)';h.appendChild(n);
-}
+function makeImgs(){if(!ALL.length)return;TM=THEMES[$('th').value]||THEMES.teal;const h=$('ih');h.innerHTML='';cv.s=drawSale();cv.p=drawPack();frame(cv.s);frame(cv.p);cv.f={};[['Sale Raw',cv.s,'s'],['Pack & Brand',cv.p,'p']].forEach(([l,c,k])=>{const t=document.createElement('div');t.textContent=l;t.style.cssText='font-weight:700;font-size:12px;margin:8px 0 4px';const im=new Image();im.src=c.toDataURL('image/png');im.alt=l;if(innerWidth<700){im.style.maxWidth='none';im.style.width=(c.width/2)+'px';}c.toBlob(b=>{cv.f[k]=new File([b],sfn(k),{type:'image/png'});},'image/png');h.appendChild(t);h.appendChild(im);});const n=document.createElement('div');n.textContent='On mobile: swipe sideways to see the whole image. Press and hold it to save or share.';n.style.cssText='font-size:12px;color:var(--muted)';h.appendChild(n);}
 $('mk').onclick=makeImgs;
-async function save(name,data){
-  const d=await claude.use('downloads');
-  if(!d){$('msg').textContent='Download is not available here. Press and hold the image to save it.';return;}
-  try{await d.save({filename:name,data});}catch(e){if(e.code!=='declined')$('msg').textContent='Could not save: '+(e.message||e.code);}
-}
-const fn=k=>(k==='s'?'Sale_Raw_':'Pack_Brand_')+dateLbl().replace(/[^0-9]+/g,'-')+'.png';
-const get=k=>{if(!cv[k])makeImgs();return cv[k];};
-$('d1').onclick=()=>get('s').toBlob(b=>save(fn('s'),b),'image/png');
-$('d2').onclick=()=>get('p').toBlob(b=>save(fn('p'),b),'image/png');
-async function sh(k){
-  get(k);const f=cv.f&&cv.f[k];
-  if(!f){$('msg').textContent='Image is getting ready - press Share again.';return;}
-  try{if(navigator.canShare&&navigator.canShare({files:[f]}))await navigator.share({files:[f],title:agency});else $('msg').textContent='Sharing is not supported here. Press and hold the image to save it.';}
-  catch(e){if(e.name!=='AbortError')$('msg').textContent='Share was blocked. Press and hold the image to save it.';}
-}
-async function cp(k){
-  get(k);const f=cv.f&&cv.f[k];
-  if(!f){$('msg').textContent='Image is getting ready - press Copy again.';return;}
-  try{await navigator.clipboard.write([new ClipboardItem({'image/png':f})]);$('msg').textContent='Image copied. Paste it in WhatsApp or any app.';}
-  catch(e){$('msg').textContent='Copy is blocked here. Use Download, or press and hold the image.';}
-}
-$('c1').onclick=()=>cp('s');$('c2').onclick=()=>cp('p');
+function sdlBlob(name,blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();}
+const sfn=k=>(k==='s'?'Sale_Raw_':'Pack_Brand_')+dateLbl().replace(/[^0-9]+/g,'-')+'.png';
+const sget=k=>{if(!cv[k])makeImgs();return cv[k];};
+$('d1').onclick=()=>sget('s').toBlob(b=>sdlBlob(sfn('s'),b),'image/png');
+$('d2').onclick=()=>sget('p').toBlob(b=>sdlBlob(sfn('p'),b),'image/png');
+async function ssh(k){sget(k);const f=cv.f&&cv.f[k];if(!f){$('smsg').textContent='Image is getting ready - press Share again.';return;}try{if(navigator.canShare&&navigator.canShare({files:[f]}))await navigator.share({files:[f],title:agency});else $('smsg').textContent='Sharing is not supported here. Press and hold the image to save it.';}catch(e){if(e.name!=='AbortError')$('smsg').textContent='Share was blocked. Press and hold the image to save it.';}}
+async function scp(k){sget(k);const f=cv.f&&cv.f[k];if(!f){$('smsg').textContent='Image is getting ready - press Copy again.';return;}try{await navigator.clipboard.write([new ClipboardItem({'image/png':f})]);$('smsg').textContent='Image copied. Paste it in WhatsApp or any app.';}catch(e){$('smsg').textContent='Copy is blocked here. Use Download, or press and hold the image.';}}
+$('c1').onclick=()=>scp('s');$('c2').onclick=()=>scp('p');
 if(!(navigator.clipboard&&window.ClipboardItem)){$('c1').classList.add('hid');$('c2').classList.add('hid');}
-$('s1').onclick=()=>sh('s');$('s2').onclick=()=>sh('p');
+$('s1').onclick=()=>ssh('s');$('s2').onclick=()=>ssh('p');
 if(!(navigator.share&&navigator.canShare)){$('s1').classList.add('hid');$('s2').classList.add('hid');}
 $('dx').onclick=()=>{
   const s=sale(),p=pack();
@@ -268,8 +295,39 @@ $('dx').onclick=()=>{
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(a1),'Sale Raw');
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(a2),'PACK & BRAND');
-  save('Sale_Raw_Pack_Brand_'+dateLbl().replace(/[^0-9]+/g,'-')+'.xlsx',new Blob([XLSX.write(wb,{type:'array',bookType:'xlsx'})]));
+  sdlBlob('Sale_Raw_Pack_Brand_'+dateLbl().replace(/[^0-9]+/g,'-')+'.xlsx',new Blob([XLSX.write(wb,{type:'array',bookType:'xlsx'})]));
 };
+
+/* =====================================================
+   SDO KPI TOOL
+===================================================== */
+const SDM={'Aqeel Ahmad':['10075','8070','7030','5556'],'Muhammad Hassan':['101041','2124','1694']};
+function todayStr(){const d=new Date();return String(d.getDate()).padStart(2,'0')+'-'+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]+'-'+d.getFullYear();}
+function pct(v,d){return(v===''||v==null||isNaN(v))?'':(v*100).toFixed(d)+'%';}
+function num(v,d){return(v===''||v==null||isNaN(v))?'':Number(v).toFixed(d);}
+function cleanPSR(s){return String(s||'').replace(/^\s*\d+\s*-\s*/,'').trim();}
+function psrId(s){const m=String(s||'').match(/^\s*(\d+)/);return m?m[1]:'';}
+function findCol(h,name){return h.findIndex(c=>String(c).trim().toUpperCase()===name);}
+const KF=['cc','sr','sku','dvo','fin'];
+function avgOf(a){const o={};KF.forEach(f=>o[f]=a.length?a.reduce((s,x)=>s+(+x[f]||0),0)/a.length:NaN);return o;}
+let REPORT_DATE='';
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function reportDate(rows){let gen=null,per=null;for(const r of rows)for(const c of r){const t=String(c);let m=t.match(/Generated On:\s*(\d{1,2})\/(\d{1,2})\/(\d{4})/i);if(m&&!gen)gen=m;m=t.match(/Period:\s*\d{1,2}\/\d{1,2}\/\d{4}\s*-\s*(\d{1,2})\/(\d{1,2})\/(\d{4})/i);if(m&&!per)per=m;}const m=gen||per;if(!m)return'';return String(m[1]).padStart(2,'0')+'-'+MON[+m[2]-1]+'-'+m[3];}
+function kparse(rows){const hi=rows.findIndex(r=>r.some(c=>String(c).trim().toUpperCase()==='PJP NAME'));if(hi<0)throw new Error('Header row (PJP Name) nahi mila');const h=rows[hi];const ix={id:findCol(h,'PJP ID'),pjp:findCol(h,'PJP NAME'),psr:findCol(h,'PSR'),cc:findCol(h,'CALL COMPLETION %'),sr:findCol(h,'STRIKE RATE'),sku:findCol(h,'AVG. SKU / INVOICE'),dvo:findCol(h,'DELIVERY VS. ORDER %'),fin:findCol(h,'FULL IN %')};for(const k in ix)if(ix[k]<0)throw new Error('Column nahi mila: '+k);const out=[];for(let i=hi+1;i<rows.length;i++){const r=rows[i];if(r[ix.id]===''||r[ix.id]==null)continue;if(!cleanPSR(r[ix.psr]))continue;if(/^competition/i.test(String(r[ix.pjp]).trim()))continue;out.push({id:psrId(r[ix.psr]),name:cleanPSR(r[ix.psr]),cc:+r[ix.cc],sr:+r[ix.sr],sku:+r[ix.sku],dvo:+r[ix.dvo],fin:+r[ix.fin]});}return out;}
+function kpis(o){const D={cc:0,sr:0,sku:1,dvo:1,fin:1};const c=(k,v,txt)=>'<td contenteditable="true" data-k="'+k+'" data-d="'+D[k]+'" data-p="'+(k==='sku'?0:1)+'" data-v="'+(isNaN(v)?'':v)+'">'+txt+'</td>';return c('cc',o.cc*100,pct(o.cc,0))+c('sr',o.sr*100,pct(o.sr,0))+c('sku',o.sku,num(o.sku,1))+c('dvo',o.dvo*100,pct(o.dvo,1))+c('fin',o.fin*100,pct(o.fin,1));}
+const KKEYS=['cc','sr','sku','dvo','fin'];
+function applyColors(){KKEYS.forEach(k=>{const raw=document.getElementById('th_'+k).value;const th=parseFloat(raw);document.querySelectorAll('td[data-k="'+k+'"]').forEach(td=>{const v=parseFloat(td.dataset.v);const bad=raw!==''&&!isNaN(th)&&!isNaN(v)&&(k==='fin'?v>th:v<th);td.classList.toggle('lr',bad);});});}
+KKEYS.forEach(k=>{const el=document.getElementById('th_'+k);try{const sv=localStorage.getItem('th_'+k);if(sv!==null)el.value=sv;}catch(_){}el.addEventListener('input',()=>{try{localStorage.setItem('th_'+k,el.value);}catch(_){}applyColors();});});
+function attach(tb){const sum=cls=>{let s=0;tb.querySelectorAll('td.'+cls).forEach(td=>{const v=parseFloat(td.textContent.replace(/,/g,''));if(!isNaN(v))s+=v;});return s;};tb.oninput=e=>{tb.querySelector('td.sd').textContent=sum('drop');tb.querySelector('td.sw').textContent=sum('wec');const td=e.target.closest?e.target.closest('td'):null;if(td&&td.dataset.k&&!td.parentElement.classList.contains('tot')){td.dataset.v=parseFloat(td.textContent.replace(/[%,\s]/g,''));const k=td.dataset.k,vals=[];tb.querySelectorAll('tr:not(.tot) td[data-k="'+k+'"]').forEach(x=>{const v=parseFloat(x.dataset.v);if(!isNaN(v))vals.push(v);});const tt=tb.querySelector('tr.tot td[data-k="'+k+'"]');if(tt&&vals.length){const av=vals.reduce((a,b)=>a+b,0)/vals.length;tt.dataset.v=av;tt.textContent=av.toFixed(+tt.dataset.d)+(tt.dataset.p==='1'?'%':'');}}applyColors();};}
+function kbuild(tableId,label,rows){const d=REPORT_DATE||todayStr();const H=['Date',label,'Call Completion','Strike Rate','SKU/Invoice','Order Vs Delivery','Full in','Dropage','WEC'];let h='<tr>'+H.map((x,i)=>'<th'+(i<2?' class="l"':'')+'>'+x+'</th>').join('')+'</tr>';rows.forEach(r=>{h+='<tr><td class="l" contenteditable="true">'+d+'</td><td class="l" contenteditable="true">'+r.name+'</td>'+kpis(r)+'<td class="drop" contenteditable="true"></td><td class="wec" contenteditable="true"></td></tr>';});const t=avgOf(rows);h+='<tr class="tot"><td class="l" colspan="2">Total</td>'+kpis(t)+'<td class="sd">0</td><td class="sw">0</td></tr>';const tb=document.getElementById(tableId);tb.innerHTML=h;attach(tb);}
+document.getElementById('kf').addEventListener('change',async e=>{const msg=document.getElementById('kmsg');msg.textContent='';const file=e.target.files[0];if(!file)return;try{const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});REPORT_DATE=reportDate(rows);const psr=kparse(rows);kbuild('kt1','PSR Name',psr);const sdo=Object.keys(SDM).map(n=>Object.assign({name:n},avgOf(psr.filter(p=>SDM[n].includes(p.id)))));kbuild('kt2','SDO',sdo);applyColors();document.getElementById('kout').style.display='block';}catch(err){msg.textContent='Error: '+err.message;}});
+function saveAll(){try{localStorage.setItem('kpiSaved',JSON.stringify({t1:document.getElementById('kt1').innerHTML,t2:document.getElementById('kt2').innerHTML,at:new Date().toLocaleString()}));document.getElementById('savemsg').textContent='Save ho gaya ✔';}catch(e){document.getElementById('savemsg').textContent='Save nahi ho saka';}}
+function restoreAll(){try{const o=JSON.parse(localStorage.getItem('kpiSaved'));['kt1','kt2'].forEach(id=>{const t=document.getElementById(id);t.innerHTML=o[id];attach(t);});applyColors();document.getElementById('kout').style.display='block';document.getElementById('savemsg').textContent='Saved: '+o.at;}catch(e){}}
+try{if(localStorage.getItem('kpiSaved'))document.getElementById('krestore').style.display='inline-block';}catch(_){}
+async function krender(id){const src=document.getElementById(id);const w=src.querySelector('table').scrollWidth+24;const c=src.cloneNode(true);c.removeAttribute('id');c.style.cssText='position:absolute;left:-10000px;top:0;width:'+w+'px;background:#fff;padding:8px;box-sizing:border-box';c.querySelector('.kwrap').style.overflow='visible';const t=c.querySelector('table');t.style.width='100%';t.style.minWidth='0';document.body.appendChild(c);try{return await html2canvas(c,{backgroundColor:'#fff',scale:2,width:w,windowWidth:w+50});}finally{c.remove();}}
+function ktoBlob(cv){return new Promise(r=>cv.toBlob(r,'image/png'));}
+async function shareImg(id){try{const b=await ktoBlob(await krender(id));const file=new File([b],'SDO_wise_KPI.png',{type:'image/png'});try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file]});return;}throw new Error('noshare');}catch(err){if(err&&err.name==='AbortError')return;const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='SDO_wise_KPI.png';a.click();}}catch(e){alert('Image nahi ban saki (internet chahiye)');}}
+async function copyImg(id){try{const b=await ktoBlob(await krender(id));try{await navigator.clipboard.write([new ClipboardItem({'image/png':b})]);alert('Poori image copy ho gayi');}catch(_){const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='SDO_wise_KPI.png';a.click();}}catch(e){alert('Image nahi ban saki (internet chahiye)');}}
 </script>
 </body>
 </html>
