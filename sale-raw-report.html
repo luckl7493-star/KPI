@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sale Raw & Pack Brand</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#fff;--panel:#F5F7F9;--line:#DCE1E6;--ink:#14181A;--muted:#68716C;--a:#0B5CAD;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14181B;--panel:#1D2226;--line:#2C343A;--ink:#F1F4F6;--muted:#9AA5AD;--a:#4C9BEA;}}
+:root[data-theme="dark"]{--bg:#14181B;--panel:#1D2226;--line:#2C343A;--ink:#F1F4F6;--muted:#9AA5AD;--a:#4C9BEA;}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,-apple-system,Segoe UI,Arial,sans-serif}
+header{background:linear-gradient(90deg,var(--g0,#001F4D),var(--g1,#0B5CAD));color:#fff;padding:18px 22px}
+header h1{margin:0;font-size:20px}header p{margin:4px 0 0;font-size:12px;opacity:.85}
+.wrap{max-width:1100px;margin:0 auto;padding:18px}
+.drop{border:2px dashed var(--a);border-radius:12px;padding:26px;text-align:center;background:var(--panel);cursor:pointer}
+.drop small{display:block;color:var(--muted);margin-top:6px}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0}
+.btn{border:none;border-radius:8px;padding:10px 14px;font-weight:700;font-size:13px;cursor:pointer;background:var(--a);color:#fff}
+.btn.alt{background:var(--bg);color:var(--a);border:1px solid var(--a)}
+.tg{font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center}
+select,input[type=text]{padding:7px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;font-size:13px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px;overflow-x:auto}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;margin:0 0 10px}
+.kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
+.k{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:12px;color:var(--muted)}
+.k b{display:block;font-size:24px;color:var(--ink);font-family:ui-monospace,Menlo,monospace}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;white-space:nowrap}
+th{background:var(--hd,#0070C0);color:#fff}td.n{text-align:right}td.low{background:#F8C9C9;color:#7A1010;font-weight:700}tr.tot td{font-weight:700;background:var(--tot,#EAF2FA);color:var(--ink)}
+#msg{font-size:13px;color:var(--a);font-weight:600;min-height:18px}
+.imgs img{max-width:100%;border:1px solid var(--line);border-radius:8px;background:#fff;margin-bottom:8px}
+.hid{display:none}
+@media (max-width:640px){.wrap{padding:12px}.btn{flex:1 1 46%;padding:12px 8px}.tg{flex:1 1 100%}.card{padding:10px}table{font-size:12px}th,td{padding:5px 7px}td:first-child,th:first-child{position:sticky;left:0;z-index:1}td:first-child{background:var(--bg)}tr.tot td:first-child{background:var(--tot,#EAF2FA)}.tg select{flex:1;min-width:0}}
+</style>
+</head>
+<body>
+<header><h1>Sale Raw & Pack & Brand</h1><p>Upload the Sales Orders Dump Excel (Data sheet). Both reports are built for you, with images.</p></header>
+<div class="wrap">
+  <div class="drop" id="drop"><b>📂 Click here or drop the Sales Orders Dump Excel</b><small>The file stays in your browser and is not uploaded anywhere.</small></div>
+  <input type="file" id="file" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" class="hid">
+  <div id="msg"></div>
+  <div id="app" class="hid">
+    <div class="bar">
+      <label class="tg">Date <select id="fd"></select></label>
+      <label class="tg">SDM <select id="fs"></select></label>
+      <span class="tg" id="sts"></span>
+      <label class="tg"><input type="checkbox" id="cS"> Include Competition Route in Sale Raw</label>
+      <label class="tg"><input type="checkbox" id="cP" checked> Include Competition Route in Pack & Brand</label>
+      <label class="tg">Sale Raw target (cases) <input type="number" id="tg" value="200" style="width:80px"></label>
+      <label class="tg">Theme <select id="th"><option value="teal">Teal</option><option value="blue">Blue</option><option value="green">Green</option><option value="orange">Orange</option><option value="dark">Dark</option></select></label>
+      <label class="tg">Pack & Brand image <select id="pf"><option value="m">Matrix (Excel style)</option><option value="c">Compact (phone friendly)</option></select></label>
+      <label class="tg"><input type="checkbox" id="auto" checked> Auto-generate images</label>
+    </div>
+    <div class="kp" id="kp"></div>
+    <div class="card"><h2>Sale Raw (cases by route)</h2><table id="t1"></table></div>
+    <div class="card"><h2>Pack & Brand (cases)</h2><table id="t2"></table></div>
+    <div class="bar">
+      <button class="btn" id="mk">Generate images</button>
+      <button class="btn alt" id="d1">Download Sale Raw image</button>
+      <button class="btn alt" id="d2">Download Pack & Brand image</button>
+      <button class="btn alt" id="c1">Copy Sale Raw image</button>
+      <button class="btn alt" id="c2">Copy Pack & Brand image</button>
+      <button class="btn" id="s1">Share Sale Raw</button>
+      <button class="btn" id="s2">Share Pack & Brand</button>
+      <button class="btn alt" id="dx">Download Excel</button>
+    </div>
+    <div class="card imgs" id="imgs"><h2>Images</h2><div id="ih" style="color:var(--muted);font-size:13px">Press "Generate images".</div></div>
+  </div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const B0={bg:'#fff',cell:'#fff',ink:'#000',ink2:'#333',line:'#3A3F45',lowF:'#F8C9C9',lowC:'#7A1010'};
+const THEMES={
+ teal:Object.assign({head:'#0E7C86',tot:'#DDF1F2',tot2:'#EEF8F8',g0:'#04343A',g1:'#0E7C86'},B0),
+ blue:Object.assign({head:'#0070C0',tot:'#EAF2FA',tot2:'#F3F7FB',g0:'#00133A',g1:'#0B66B8'},B0),
+ green:Object.assign({head:'#1B7A3E',tot:'#E3F1E8',tot2:'#F0F7F2',g0:'#0A3D1E',g1:'#1B7A3E'},B0),
+ orange:Object.assign({head:'#D9731A',tot:'#FDEBD6',tot2:'#FEF5EA',g0:'#6B3300',g1:'#D9731A'},B0),
+ dark:{head:'#0B5CAD',tot:'#3A4550',tot2:'#2F3841',g0:'#000000',g1:'#23405F',bg:'#1B2026',cell:'#262D34',ink:'#F1F4F6',ink2:'#B8C2CA',line:'#7A8791',lowF:'#8A2B2B',lowC:'#FFFFFF'}
+};
+let TM=THEMES.teal;
+function applyTheme(){
+  TM=THEMES[$('th').value]||THEMES.teal;
+  const d=document.documentElement,s=d.style;
+  d.setAttribute('data-theme',$('th').value==='dark'?'dark':'light');
+  s.setProperty('--hd',TM.head);s.setProperty('--g0',TM.g0);s.setProperty('--g1',TM.g1);s.setProperty('--tot',TM.tot);
+  if($('th').value==='dark')s.removeProperty('--a');else s.setProperty('--a',TM.head);
+}
+let ALL=[],agency='Mehar Munir Brother',cv={};
+const key=s=>String(s).toLowerCase().replace(/-/g,'');
+const cmp=(a,b)=>{const x=key(a),y=key(b);return x<y?-1:x>y?1:0;};
+const fmt=v=>(Math.round(v*100)/100).toLocaleString('en-US',{maximumFractionDigits:2});
+const isComp=r=>/competition/i.test(r.pjp);
+const T=()=>+$('tg').value||0;
+const low=v=>Math.round(v*100)/100<T();
+applyTheme();
+$('drop').onclick=()=>$('file').click();
+$('drop').ondragover=e=>e.preventDefault();
+$('drop').ondrop=e=>{e.preventDefault();if(e.dataTransfer.files[0])load(e.dataTransfer.files[0]);};
+$('file').onchange=e=>{if(e.target.files[0])load(e.target.files[0]);};
+
+async function load(f){
+  $('msg').textContent='Reading file…';
+  try{
+    const wb=XLSX.read(await f.arrayBuffer(),{type:'array',cellDates:true});
+    let rows=null;
+    for(const n of ['Data',...wb.SheetNames]){
+      const ws=wb.Sheets[n];if(!ws)continue;
+      const a=XLSX.utils.sheet_to_json(ws,{defval:''});
+      if(a.length&&'SDO_CASES' in a[0]&&'PJP_LABEL' in a[0]){rows=a;break;}
+    }
+    if(!rows)throw new Error('Data sheet with SDO_CASES / PJP_LABEL columns not found');
+    const dt=v=>v instanceof Date?new Date(v.getTime()-v.getTimezoneOffset()*60000).toISOString().slice(0,10):String(v).slice(0,10);
+    ALL=rows.map(r=>({pjp:String(r.PJP_LABEL).trim(),pack:String(r.SDO_PACKAGE_LABEL).trim(),brand:String(r.SDO_BRAND_LABEL).trim(),cases:+r.SDO_CASES||0,status:String(r.ORDER_STATUS).trim()||'—',sdm:String(r.SD_TDM_NAME).trim()||'—',date:dt(r.SD_CREATED_ON_DATE),dist:String(r.SD_DISTRIBUTOR_LABEL||'')})).filter(r=>r.pjp&&r.pack&&r.brand);
+    const d0=ALL[0]&&ALL[0].dist.replace(/^\s*\d+\s*-\s*/,'').trim();
+    if(d0)agency=d0.toLowerCase().replace(/\b\w/g,m=>m.toUpperCase());
+    const fill=(sel,vals)=>{sel.innerHTML='';['All',...vals].forEach(v=>{const o=document.createElement('option');o.value=o.textContent=v;sel.appendChild(o);});};
+    fill($('fd'),[...new Set(ALL.map(r=>r.date))].sort());
+    fill($('fs'),[...new Set(ALL.map(r=>r.sdm))].sort());
+    $('sts').innerHTML='';
+    [...new Set(ALL.map(r=>r.status))].sort().forEach(s=>{
+      const l=document.createElement('label');l.className='tg';
+      const c=document.createElement('input');c.type='checkbox';c.className='st';c.value=s;c.checked=true;c.onchange=refresh;
+      l.appendChild(c);l.appendChild(document.createTextNode(' '+s));$('sts').appendChild(l);
+    });
+    $('app').classList.remove('hid');
+    $('msg').textContent='Loaded '+f.name+' — '+ALL.length+' rows';
+    refresh();
+  }catch(e){$('msg').textContent='Error: '+e.message;}
+}
+function sel(){
+  const d=$('fd').value,s=$('fs').value,st=[...document.querySelectorAll('.st:checked')].map(x=>x.value);
+  return ALL.filter(r=>(d==='All'||r.date===d)&&(s==='All'||r.sdm===s)&&st.includes(r.status));
+}
+function sale(){
+  const m=new Map();
+  sel().forEach(r=>{if(!$('cS').checked&&isComp(r))return;m.set(r.pjp,(m.get(r.pjp)||0)+r.cases);});
+  const rows=[...m].sort((a,b)=>cmp(a[0],b[0]));
+  return{rows,tot:rows.reduce((s,x)=>s+x[1],0)};
+}
+function pack(){
+  const mt=new Map(),bs=new Set();
+  sel().forEach(r=>{if(!$('cP').checked&&isComp(r))return;bs.add(r.brand);if(!mt.has(r.pack))mt.set(r.pack,new Map());const m=mt.get(r.pack);m.set(r.brand,(m.get(r.brand)||0)+r.cases);});
+  const B=[...bs].sort(cmp),P=[...mt.keys()].sort(cmp);
+  const rows=P.map(p=>{const m=mt.get(p),vals=B.map(b=>m.get(b)||0);return{p,vals,t:vals.reduce((a,b)=>a+b,0)};});
+  const ct=B.map((b,i)=>rows.reduce((s,r)=>s+r.vals[i],0));
+  return{B,rows,ct,tot:ct.reduce((a,b)=>a+b,0)};
+}
+function cell(tr,v,cls,tag){const e=document.createElement(tag||'td');e.textContent=v;if(cls)e.className=cls;tr.appendChild(e);}
+function refresh(){
+  const s=sale(),p=pack();
+  $('kp').innerHTML='';
+  [['Sale Raw cases',fmt(s.tot)],['Pack & Brand cases',fmt(p.tot)],['Routes',s.rows.length],['Packages',p.rows.length],['Brands',p.B.length]].forEach(a=>{const d=document.createElement('div');d.className='k';d.textContent=a[0];const b=document.createElement('b');b.textContent=a[1];d.appendChild(b);$('kp').appendChild(d);});
+  const t1=$('t1');t1.innerHTML='';let tr=document.createElement('tr');['PJP_LABEL','Sum of SDO_CASES','Share'].forEach(x=>cell(tr,x,'','th'));t1.appendChild(tr);
+  s.rows.forEach(r=>{tr=document.createElement('tr');cell(tr,r[0]);cell(tr,fmt(r[1]),'n'+(low(r[1])?' low':''));cell(tr,s.tot?(r[1]/s.tot*100).toFixed(1)+'%':'','n');t1.appendChild(tr);});
+  tr=document.createElement('tr');tr.className='tot';cell(tr,'Grand Total');cell(tr,fmt(s.tot),'n');cell(tr,'100%','n');t1.appendChild(tr);
+  const t2=$('t2');t2.innerHTML='';tr=document.createElement('tr');['Package \\ Brand',...p.B,'Grand Total'].forEach(x=>cell(tr,x,'','th'));t2.appendChild(tr);
+  p.rows.forEach(r=>{tr=document.createElement('tr');cell(tr,r.p);r.vals.forEach(v=>cell(tr,v?fmt(v):'','n'));cell(tr,fmt(r.t),'n');t2.appendChild(tr);});
+  tr=document.createElement('tr');tr.className='tot';cell(tr,'Grand Total');p.ct.forEach(v=>cell(tr,fmt(v),'n'));cell(tr,fmt(p.tot),'n');t2.appendChild(tr);
+  if($('auto').checked)makeImgs();
+}
+$('th').onchange=()=>{applyTheme();refresh();};
+['fd','fs','cS','cP','tg','pf'].forEach(i=>$(i).onchange=refresh);
+
+function mk(W,H){const S=2,c=document.createElement('canvas');c.width=W*S;c.height=H*S;const x=c.getContext('2d');x.scale(S,S);x.fillStyle=TM.bg;x.fillRect(0,0,W,H);x.textBaseline='middle';return{c,x};}
+function dateLbl(){const d=$('fd').value;if(d!=='All')return d.split('-').reverse().join('/');const ds=[...new Set(ALL.map(r=>r.date))].sort();return ds.length?ds[0].split('-').reverse().join('/')+(ds.length>1?' - '+ds[ds.length-1].split('-').reverse().join('/'):''):'';}
+function hdr(x,W,sub){
+  const g=x.createLinearGradient(0,0,W,0);g.addColorStop(0,TM.g0);g.addColorStop(1,TM.g1);x.fillStyle=g;x.fillRect(0,0,W,72);
+  x.fillStyle='#fff';x.textAlign='left';x.font='bold 22px Arial';x.fillText(agency,20,27,W-200);
+  x.font='14px Arial';x.fillText(sub+' · '+($('fs').value==='All'?'All SDMs':$('fs').value),20,52,W-200);
+  x.textAlign='right';x.font='bold 18px Arial';x.fillText(dateLbl(),W-20,36);
+}
+function box(x,cx,y,w,h,t,o){
+  x.fillStyle=o.fill||TM.cell;x.fillRect(cx,y,w,h);x.strokeStyle=TM.line;x.lineWidth=1.5;x.strokeRect(cx,y,w,h);
+  x.fillStyle=o.color||TM.ink;x.font=(o.bold?'bold ':'')+(o.fs||13)+'px Arial';x.textAlign=o.al||'left';
+  const px=o.al==='right'?cx+w-8:o.al==='center'?cx+w/2:cx+8;
+  if(o.wrap&&x.measureText(t).width>w-8&&t.includes(' ')){const wd=t.split(' '),m=Math.ceil(wd.length/2);x.fillText(wd.slice(0,m).join(' '),px,y+h/2-8,w-6);x.fillText(wd.slice(m).join(' '),px,y+h/2+8,w-6);}
+  else x.fillText(t,px,y+h/2+1,w-10);
+}
+const HEAD={get fill(){return TM.head},color:'#fff',bold:1},TOT={get fill(){return TM.tot},get color(){return TM.ink},bold:1};
+function drawSale(){
+  const d=sale(),W=720,RH=34,H=72+22+RH*(d.rows.length+2)+50,{c,x}=mk(W,H);hdr(x,W,'Sale Raw');
+  const cw=[300,120,90,170];let y=94,cx;
+  const row=(v,o,bar)=>{cx=20;v.forEach((t,i)=>{box(x,cx,y,cw[i],RH,t,Object.assign({al:i===0?'left':'right'},o,o.cellFill&&o.cellFill[i]?{fill:TM.lowF,color:TM.lowC,bold:1}:{}));cx+=cw[i];});
+    if(bar!==undefined){x.fillStyle=TM.head;x.fillRect(20+cw[0]+cw[1]+cw[2]+8,y+9,Math.max(2,(cw[3]-16)*bar),RH-18);}y+=RH;};
+  row(['PJP_LABEL','Sum of SDO_CASES','Share',''],HEAD);
+  const mx=Math.max(1,...d.rows.map(r=>r[1]));
+  d.rows.forEach(r=>row([r[0],fmt(r[1]),d.tot?(r[1]/d.tot*100).toFixed(1)+'%':'',''],{cellFill:[0,low(r[1])]},r[1]/mx));
+  row(['Grand Total',fmt(d.tot),'100%',''],TOT);
+  x.fillStyle=TM.lowF;x.fillRect(20,y+12,14,14);x.strokeStyle=TM.line;x.strokeRect(20,y+12,14,14);
+  x.fillStyle=TM.ink2;x.font='12px Arial';x.textAlign='left';x.fillText('Below target: '+T()+' cases',42,y+19);
+  return c;
+}
+function drawPackM(){
+  const d=pack(),nb=d.B.length,c0=190,cb=82,ct=92,W=40+c0+nb*cb+ct,RH=32,HH=46,H=72+22+HH+RH*(d.rows.length+1)+22,{c,x}=mk(W,H);hdr(x,W,'Pack & Brand');
+  let y=94,cx=20;
+  box(x,cx,y,c0,HH,'Package',Object.assign({fs:12},HEAD));cx+=c0;
+  d.B.forEach(b=>{box(x,cx,y,cb,HH,b,Object.assign({fs:11,al:'center',wrap:1},HEAD));cx+=cb;});
+  box(x,cx,y,ct,HH,'Grand Total',Object.assign({fs:12,al:'center'},HEAD));y+=HH;
+  const line=(label,vals,t,o)=>{cx=20;box(x,cx,y,c0,RH,label,Object.assign({fs:12},o));cx+=c0;vals.forEach(v=>{box(x,cx,y,cb,RH,v?fmt(v):'',Object.assign({fs:12,al:'right'},o));cx+=cb;});box(x,cx,y,ct,RH,fmt(t),Object.assign({fs:12,al:'right',bold:1,fill:o.fill||TM.tot2},o));y+=RH;};
+  d.rows.forEach(r=>line(r.p,r.vals,r.t,{}));
+  line('Grand Total',d.ct,d.tot,TOT);
+  return c;
+}
+function drawPackC(){
+  const d=pack(),W=720,RH=34,H=72+22+RH*(d.rows.length+2)+30+RH*(d.B.length+2)+22,o=mk(W,H),x=o.x;
+  hdr(x,W,'Pack & Brand');
+  const cw=[300,120,90,170],pc=Math.max(1,...d.rows.map(r=>r.t)),bc=Math.max(1,...d.ct);
+  let y=94;
+  const row=(v,fo,bar)=>{let cx=20;v.forEach((t,i)=>{box(x,cx,y,cw[i],RH,t,Object.assign({al:i===0?'left':'right'},fo));cx+=cw[i];});
+    if(bar!==undefined){x.fillStyle=TM.head;x.fillRect(20+cw[0]+cw[1]+cw[2]+8,y+9,Math.max(2,(cw[3]-16)*bar),RH-18);}y+=RH;};
+  const sh=t=>d.tot?(t/d.tot*100).toFixed(1)+'%':'';
+  row(['Package','Cases','Share',''],HEAD);
+  d.rows.forEach(r=>row([r.p,fmt(r.t),sh(r.t),''],{},r.t/pc));
+  row(['Grand Total',fmt(d.tot),'100%',''],TOT);
+  y+=30;
+  row(['Brand','Cases','Share',''],HEAD);
+  d.B.forEach((b,i)=>row([b,fmt(d.ct[i]),sh(d.ct[i]),''],{},d.ct[i]/bc));
+  row(['Grand Total',fmt(d.tot),'100%',''],TOT);
+  return o.c;
+}
+function drawPack(){return $('pf').value==='c'?drawPackC():drawPackM();}
+function frame(c){const x=c.getContext('2d'),W=c.width/2,H=c.height/2;x.strokeStyle=TM.head;x.lineWidth=8;x.strokeRect(4,4,W-8,H-8);}
+function makeImgs(){
+  if(!ALL.length)return;
+  TM=THEMES[$('th').value]||THEMES.teal;
+  const h=$('ih');h.innerHTML='';
+  cv.s=drawSale();cv.p=drawPack();frame(cv.s);frame(cv.p);
+  cv.f={};[['Sale Raw',cv.s,'s'],['Pack & Brand',cv.p,'p']].forEach(([l,c,k])=>{
+    const t=document.createElement('div');t.textContent=l;t.style.cssText='font-weight:700;font-size:12px;margin:8px 0 4px';
+    const im=new Image();im.src=c.toDataURL('image/png');im.alt=l;if(innerWidth<700){im.style.maxWidth='none';im.style.width=(c.width/2)+'px';}c.toBlob(b=>{cv.f[k]=new File([b],fn(k),{type:'image/png'});},'image/png');h.appendChild(t);h.appendChild(im);
+  });
+  const n=document.createElement('div');n.textContent='On mobile: swipe sideways to see the whole image. Press and hold it to save or share.';n.style.cssText='font-size:12px;color:var(--muted)';h.appendChild(n);
+}
+$('mk').onclick=makeImgs;
+async function save(name,data){
+  const d=await claude.use('downloads');
+  if(!d){$('msg').textContent='Download is not available here. Press and hold the image to save it.';return;}
+  try{await d.save({filename:name,data});}catch(e){if(e.code!=='declined')$('msg').textContent='Could not save: '+(e.message||e.code);}
+}
+const fn=k=>(k==='s'?'Sale_Raw_':'Pack_Brand_')+dateLbl().replace(/[^0-9]+/g,'-')+'.png';
+const get=k=>{if(!cv[k])makeImgs();return cv[k];};
+$('d1').onclick=()=>get('s').toBlob(b=>save(fn('s'),b),'image/png');
+$('d2').onclick=()=>get('p').toBlob(b=>save(fn('p'),b),'image/png');
+async function sh(k){
+  get(k);const f=cv.f&&cv.f[k];
+  if(!f){$('msg').textContent='Image is getting ready - press Share again.';return;}
+  try{if(navigator.canShare&&navigator.canShare({files:[f]}))await navigator.share({files:[f],title:agency});else $('msg').textContent='Sharing is not supported here. Press and hold the image to save it.';}
+  catch(e){if(e.name!=='AbortError')$('msg').textContent='Share was blocked. Press and hold the image to save it.';}
+}
+async function cp(k){
+  get(k);const f=cv.f&&cv.f[k];
+  if(!f){$('msg').textContent='Image is getting ready - press Copy again.';return;}
+  try{await navigator.clipboard.write([new ClipboardItem({'image/png':f})]);$('msg').textContent='Image copied. Paste it in WhatsApp or any app.';}
+  catch(e){$('msg').textContent='Copy is blocked here. Use Download, or press and hold the image.';}
+}
+$('c1').onclick=()=>cp('s');$('c2').onclick=()=>cp('p');
+if(!(navigator.clipboard&&window.ClipboardItem)){$('c1').classList.add('hid');$('c2').classList.add('hid');}
+$('s1').onclick=()=>sh('s');$('s2').onclick=()=>sh('p');
+if(!(navigator.share&&navigator.canShare)){$('s1').classList.add('hid');$('s2').classList.add('hid');}
+$('dx').onclick=()=>{
+  const s=sale(),p=pack();
+  const a1=[['PJP_LABEL','Sum of SDO_CASES'],...s.rows.map(r=>[r[0],+r[1].toFixed(4)]),['Grand Total',+s.tot.toFixed(4)]];
+  const a2=[['Package \\ Brand',...p.B,'Grand Total'],...p.rows.map(r=>[r.p,...r.vals.map(v=>v?+v.toFixed(4):''),+r.t.toFixed(4)]),['Grand Total',...p.ct.map(v=>+v.toFixed(4)),+p.tot.toFixed(4)]];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(a1),'Sale Raw');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(a2),'PACK & BRAND');
+  save('Sale_Raw_Pack_Brand_'+dateLbl().replace(/[^0-9]+/g,'-')+'.xlsx',new Blob([XLSX.write(wb,{type:'array',bookType:'xlsx'})]));
+};
+</script>
+</body>
+</html>
