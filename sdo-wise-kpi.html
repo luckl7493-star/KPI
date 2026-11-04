@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SDO wise KPI</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  body{font-family:Calibri,Arial,sans-serif;margin:0;padding:12px;background:#fff;color:#000}
+  .bar{border:1px solid #999;border-radius:8px;padding:12px;margin-bottom:14px}
+  .bar input{font-size:15px;max-width:100%}
+  .msg{color:#a00;font-size:14px;margin-top:6px}
+  .card{background:#fff;padding:8px}
+  h2{margin:0 0 8px;font-size:18px}
+  .wrap{overflow-x:auto}
+  table{border-collapse:collapse;min-width:820px;width:100%;font-size:15px;background:#fff}
+  th,td{border:1px solid #000;padding:5px 9px;text-align:center;white-space:nowrap;color:#000;background:#fff}
+  th{font-weight:700}
+  td.l,th.l{text-align:left}
+  td[contenteditable]{outline:none;min-width:60px}
+  tr.tot td{font-weight:700}
+  .blue th,.blue tr.tot td{background:#cfe2f3}
+  td.lr{background:#ffc7ce;color:#9c0006}
+  .set{border:1px solid #999;border-radius:8px;padding:10px;margin-bottom:14px;font-size:14px}
+  .set label{display:inline-block;margin:4px 10px 4px 0}
+  .set input{width:62px;font-size:15px;padding:3px}
+  button{font-size:15px;padding:8px 14px;margin-top:10px;border:1px solid #555;border-radius:6px;background:#fff;color:#000}
+</style>
+</head>
+<body>
+<div class="bar">
+  <b>R320 file upload karo (.xlsx)</b><br><br>
+  <input type="file" id="f" accept=".xlsx,.xls,.csv">
+  <div class="msg" id="msg"></div>
+  <button id="restore" style="display:none" onclick="restoreAll()">Last saved wali tables kholo</button>
+</div>
+
+<div id="out" style="display:none">
+  <div class="set"><button style="margin:0" onclick="saveAll()">Save</button> <span id="savemsg"></span></div>
+  <div class="set">
+    <b>Target % (isse kam ho to light red)</b><br>
+    <label>Call Completion <input type="number" step="any" id="th_cc"></label>
+    <label>Strike Rate <input type="number" step="any" id="th_sr"></label>
+    <label>SKU/Invoice <input type="number" step="any" id="th_sku"></label>
+    <label>Order Vs Delivery <input type="number" step="any" id="th_dvo"></label>
+    <label>Full in (isse zyada ho to red) <input type="number" step="any" id="th_fin"></label>
+  </div>
+  <div id="card1" class="card blue">
+    <h2>PJP wise KPI</h2>
+    <div class="wrap"><table id="t1"></table></div>
+  </div>
+  <button onclick="shareImg('card1')">Image share</button> <button onclick="copyImg('card1')">Image copy</button>
+
+  <div id="card2" class="card blue" style="margin-top:24px">
+    <h2>SDO wise KPI</h2>
+    <div class="wrap"><table id="t2"></table></div>
+  </div>
+  <button onclick="shareImg('card2')">Image share</button> <button onclick="copyImg('card2')">Image copy</button>
+</div>
+
+<script>
+/* SDM -> PSR ID mapping (Excel formulas ke mutabiq) */
+const SDM={
+  'Aqeel Ahmad':['10075','8070','7030','5556'],
+  'Muhammad Hassan':['101041','2124','1694']
+};
+
+function todayStr(){const d=new Date();return String(d.getDate()).padStart(2,'0')+'-'+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]+'-'+d.getFullYear();}
+function pct(v,d){return (v===''||v==null||isNaN(v))?'':(v*100).toFixed(d)+'%';}
+function num(v,d){return (v===''||v==null||isNaN(v))?'':Number(v).toFixed(d);}
+function cleanPSR(s){return String(s||'').replace(/^\s*\d+\s*-\s*/,'').trim();}
+function psrId(s){const m=String(s||'').match(/^\s*(\d+)/);return m?m[1]:'';}
+function findCol(h,name){return h.findIndex(c=>String(c).trim().toUpperCase()===name);}
+const F=['cc','sr','sku','dvo','fin'];
+function avgOf(a){const o={};F.forEach(f=>o[f]=a.length?a.reduce((s,x)=>s+(+x[f]||0),0)/a.length:NaN);return o;}
+
+let REPORT_DATE='';
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function reportDate(rows){
+  let gen=null,per=null;
+  for(const r of rows) for(const c of r){
+    const t=String(c);
+    let m=t.match(/Generated On:\s*(\d{1,2})\/(\d{1,2})\/(\d{4})/i); if(m&&!gen) gen=m;
+    m=t.match(/Period:\s*\d{1,2}\/\d{1,2}\/\d{4}\s*-\s*(\d{1,2})\/(\d{1,2})\/(\d{4})/i); if(m&&!per) per=m;
+  }
+  const m=gen||per; if(!m) return '';
+  return String(m[1]).padStart(2,'0')+'-'+MON[+m[2]-1]+'-'+m[3];
+}
+
+function parse(rows){
+  const hi=rows.findIndex(r=>r.some(c=>String(c).trim().toUpperCase()==='PJP NAME'));
+  if(hi<0) throw new Error('Header row (PJP Name) nahi mila');
+  const h=rows[hi];
+  const ix={id:findCol(h,'PJP ID'),pjp:findCol(h,'PJP NAME'),psr:findCol(h,'PSR'),cc:findCol(h,'CALL COMPLETION %'),
+    sr:findCol(h,'STRIKE RATE'),sku:findCol(h,'AVG. SKU / INVOICE'),
+    dvo:findCol(h,'DELIVERY VS. ORDER %'),fin:findCol(h,'FULL IN %')};
+  for(const k in ix) if(ix[k]<0) throw new Error('Column nahi mila: '+k);
+  const out=[];
+  for(let i=hi+1;i<rows.length;i++){
+    const r=rows[i];
+    if(r[ix.id]===''||r[ix.id]==null) continue;               // Total / footer
+    if(!cleanPSR(r[ix.psr])) continue;                          // blank PSR row remove
+    if(/^competition/i.test(String(r[ix.pjp]).trim())) continue; // Competition remove
+    out.push({id:psrId(r[ix.psr]),name:cleanPSR(r[ix.psr]),cc:+r[ix.cc],sr:+r[ix.sr],sku:+r[ix.sku],dvo:+r[ix.dvo],fin:+r[ix.fin]});
+  }
+  return out;
+}
+
+function kpis(o){
+  const D={cc:0,sr:0,sku:1,dvo:1,fin:1};
+  const c=(k,v,txt)=>'<td contenteditable="true" data-k="'+k+'" data-d="'+D[k]+'" data-p="'+(k==='sku'?0:1)+'" data-v="'+(isNaN(v)?'':v)+'">'+txt+'</td>';
+  return c('cc',o.cc*100,pct(o.cc,0))+c('sr',o.sr*100,pct(o.sr,0))+c('sku',o.sku,num(o.sku,1))
+    +c('dvo',o.dvo*100,pct(o.dvo,1))+c('fin',o.fin*100,pct(o.fin,1));
+}
+const KEYS=['cc','sr','sku','dvo','fin'];
+function applyColors(){
+  KEYS.forEach(k=>{
+    const raw=document.getElementById('th_'+k).value;
+    const th=parseFloat(raw);
+    document.querySelectorAll('td[data-k="'+k+'"]').forEach(td=>{
+      const v=parseFloat(td.dataset.v);
+      const bad=raw!==''&&!isNaN(th)&&!isNaN(v)&&(k==='fin'?v>th:v<th);
+      td.classList.toggle('lr',bad);
+    });
+  });
+}
+KEYS.forEach(k=>{
+  const el=document.getElementById('th_'+k);
+  try{const sv=localStorage.getItem('th_'+k);if(sv!==null)el.value=sv;}catch(_){}
+  el.addEventListener('input',()=>{try{localStorage.setItem('th_'+k,el.value);}catch(_){} applyColors();});
+});
+
+function attach(tb){
+  const sum=cls=>{let s=0;tb.querySelectorAll('td.'+cls).forEach(td=>{const v=parseFloat(td.textContent.replace(/,/g,''));if(!isNaN(v))s+=v;});return s;};
+  tb.oninput=e=>{
+    tb.querySelector('td.sd').textContent=sum('drop');tb.querySelector('td.sw').textContent=sum('wec');
+    const td=e.target.closest?e.target.closest('td'):null;
+    if(td&&td.dataset.k&&!td.parentElement.classList.contains('tot')){
+      td.dataset.v=parseFloat(td.textContent.replace(/[%,\s]/g,''));
+      const k=td.dataset.k,vals=[];
+      tb.querySelectorAll('tr:not(.tot) td[data-k="'+k+'"]').forEach(x=>{const v=parseFloat(x.dataset.v);if(!isNaN(v))vals.push(v);});
+      const tt=tb.querySelector('tr.tot td[data-k="'+k+'"]');
+      if(tt&&vals.length){const av=vals.reduce((a,b)=>a+b,0)/vals.length;
+        tt.dataset.v=av;tt.textContent=av.toFixed(+tt.dataset.d)+(tt.dataset.p==='1'?'%':'');}
+    }
+    applyColors();
+  };
+}
+
+function build(tableId,label,rows){
+  const d=REPORT_DATE||todayStr();
+  const H=['Date',label,'Call Completion','Strike Rate','SKU/Invoice','Order Vs Delivery','Full in','Dropage','WEC'];
+  let h='<tr>'+H.map((x,i)=>'<th'+(i<2?' class="l"':'')+'>'+x+'</th>').join('')+'</tr>';
+  rows.forEach(r=>{
+    h+='<tr><td class="l" contenteditable="true">'+d+'</td><td class="l" contenteditable="true">'+r.name+'</td>'
+      +kpis(r)
+      +'<td class="drop" contenteditable="true"></td><td class="wec" contenteditable="true"></td></tr>';
+  });
+  const t=avgOf(rows);
+  h+='<tr class="tot"><td class="l" colspan="2">Total</td>'
+    +kpis(t)
+    +'<td class="sd">0</td><td class="sw">0</td></tr>';
+  const tb=document.getElementById(tableId);
+  tb.innerHTML=h;
+  attach(tb);
+}
+
+document.getElementById('f').addEventListener('change',async e=>{
+  const msg=document.getElementById('msg');msg.textContent='';
+  const file=e.target.files[0];if(!file)return;
+  try{
+    const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});
+    const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});
+    REPORT_DATE=reportDate(rows);
+    const psr=parse(rows);
+    build('t1','PSR Name',psr);
+    const sdo=Object.keys(SDM).map(n=>Object.assign({name:n},avgOf(psr.filter(p=>SDM[n].includes(p.id)))));
+    build('t2','SDO',sdo);
+    applyColors();
+    document.getElementById('out').style.display='block';
+  }catch(err){msg.textContent='Error: '+err.message;}
+});
+
+function saveAll(){
+  try{
+    localStorage.setItem('kpiSaved',JSON.stringify({t1:document.getElementById('t1').innerHTML,t2:document.getElementById('t2').innerHTML,at:new Date().toLocaleString()}));
+    document.getElementById('savemsg').textContent='Save ho gaya ✔';
+  }catch(e){document.getElementById('savemsg').textContent='Save nahi ho saka';}
+}
+function restoreAll(){
+  try{
+    const o=JSON.parse(localStorage.getItem('kpiSaved'));
+    ['t1','t2'].forEach(id=>{const t=document.getElementById(id);t.innerHTML=o[id];attach(t);});
+    applyColors();
+    document.getElementById('out').style.display='block';
+    document.getElementById('savemsg').textContent='Saved: '+o.at;
+  }catch(e){}
+}
+try{if(localStorage.getItem('kpiSaved'))document.getElementById('restore').style.display='inline-block';}catch(_){}
+
+async function render(id){
+  const src=document.getElementById(id);
+  const w=src.querySelector('table').scrollWidth+24;
+  const c=src.cloneNode(true);
+  c.removeAttribute('id');
+  c.style.cssText='position:absolute;left:-10000px;top:0;width:'+w+'px;background:#fff;padding:8px;box-sizing:border-box';
+  c.querySelector('.wrap').style.overflow='visible';
+  const t=c.querySelector('table');t.style.width='100%';t.style.minWidth='0';
+  document.body.appendChild(c);
+  try{
+    return await html2canvas(c,{backgroundColor:'#fff',scale:2,width:w,windowWidth:w+50});
+  }finally{c.remove();}
+}
+function toBlob(cv){return new Promise(r=>cv.toBlob(r,'image/png'));}
+async function shareImg(id){
+  try{
+    const b=await toBlob(await render(id));
+    const file=new File([b],'SDO_wise_KPI.png',{type:'image/png'});
+    try{
+      if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file]});return;}
+      throw new Error('noshare');
+    }catch(err){
+      if(err&&err.name==='AbortError')return;
+      const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='SDO_wise_KPI.png';a.click();
+    }
+  }catch(e){alert('Image nahi ban saki (internet chahiye)');}
+}
+async function copyImg(id){
+  try{
+    const b=await toBlob(await render(id));
+    try{await navigator.clipboard.write([new ClipboardItem({'image/png':b})]);alert('Poori image copy ho gayi');}
+    catch(_){const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='SDO_wise_KPI.png';a.click();}
+  }catch(e){alert('Image nahi ban saki (internet chahiye)');}
+}
+</script>
+</body>
+</html>
