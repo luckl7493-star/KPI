@@ -184,6 +184,8 @@ h2.sec{font-size:13px;text-transform:uppercase;letter-spacing:.06em;margin:0 0 1
         <span class="tg" id="sts"></span>
         <label class="tg"><input type="checkbox" id="cS"> Include Competition Route in Sale Raw</label>
         <label class="tg"><input type="checkbox" id="cP" checked> Include Competition Route in Pack &amp; Brand</label>
+        <label class="tg">Pack filter <select id="fpk"><option value="All">All Packs</option></select></label>
+        <label class="tg">Brand filter <select id="fbr"><option value="All">All Brands</option></select></label>
         <label class="tg">Sale Raw target (cases) <input type="number" id="tg" value="200" style="width:80px"></label>
         <label class="tg">Theme <select id="th"><option value="teal">Teal</option><option value="blue">Blue</option><option value="green">Green</option><option value="orange">Orange</option><option value="dark">Dark</option></select></label>
         <label class="tg">Pack &amp; Brand image <select id="pf"><option value="m">Matrix (Excel style)</option><option value="c">Compact (phone friendly)</option></select></label>
@@ -225,6 +227,7 @@ h2.sec{font-size:13px;text-transform:uppercase;letter-spacing:.06em;margin:0 0 1
       <label>Order Vs Delivery <input type="number" step="any" id="th_dvo"></label>
       <label>Full in (isse zyada ho to red) <input type="number" step="any" id="th_fin"></label>
     </div>
+    <div class="kset" id="colbar"></div>
     <div id="card1" class="kcard blue">
       <h2>PJP wise KPI</h2>
       <div class="kwrap"><table class="ktbl" id="kt1"></table></div>
@@ -435,6 +438,8 @@ async function sload(f){
     const fill=(sel,vals)=>{sel.innerHTML='';['All',...vals].forEach(v=>{const o=document.createElement('option');o.value=o.textContent=v;sel.appendChild(o);});};
     fill($('fd'),[...new Set(ALL.map(r=>r.date))].sort());
     fill($('fs'),[...new Set(ALL.map(r=>r.sdm))].sort());
+    fill($('fpk'),[...new Set(ALL.map(r=>r.pack))].sort(cmp));
+    fill($('fbr'),[...new Set(ALL.map(r=>r.brand))].sort(cmp));
     $('sts').innerHTML='';
     [...new Set(ALL.map(r=>r.status))].sort().forEach(s=>{const l=document.createElement('label');l.className='tg';const c=document.createElement('input');c.type='checkbox';c.className='st';c.value=s;c.checked=true;c.onchange=refresh;l.appendChild(c);l.appendChild(document.createTextNode(' '+s));$('sts').appendChild(l);});
     $('sapp').classList.remove('hid');$('smsg').textContent='Loaded '+f.name+' — '+ALL.length+' rows';refresh();
@@ -442,7 +447,22 @@ async function sload(f){
 }
 function ssel(){const d=$('fd').value,s=$('fs').value,st=[...document.querySelectorAll('.st:checked')].map(x=>x.value);return ALL.filter(r=>(d==='All'||r.date===d)&&(s==='All'||r.sdm===s)&&st.includes(r.status));}
 function sale(){const m=new Map();ssel().forEach(r=>{if(!$('cS').checked&&isComp(r))return;m.set(r.pjp,(m.get(r.pjp)||0)+r.cases);});const rows=[...m].sort((a,b)=>cmp(a[0],b[0]));return{rows,tot:rows.reduce((s,x)=>s+x[1],0)};}
-function pack(){const mt=new Map(),bs=new Set();ssel().forEach(r=>{if(!$('cP').checked&&isComp(r))return;bs.add(r.brand);if(!mt.has(r.pack))mt.set(r.pack,new Map());const m=mt.get(r.pack);m.set(r.brand,(m.get(r.brand)||0)+r.cases);});const B=[...bs].sort(cmp),P=[...mt.keys()].sort(cmp);const rows=P.map(p=>{const m=mt.get(p),vals=B.map(b=>m.get(b)||0);return{p,vals,t:vals.reduce((a,b)=>a+b,0)};});const ct=B.map((b,i)=>rows.reduce((s,r)=>s+r.vals[i],0));return{B,rows,ct,tot:ct.reduce((a,b)=>a+b,0)};}
+function pack(){
+  const selPk=$('fpk').value, selBr=$('fbr').value;
+  const mt=new Map(),bs=new Set();
+  ssel().forEach(r=>{
+    if(!$('cP').checked&&isComp(r))return;
+    if(selPk!=='All'&&r.pack!==selPk)return;
+    if(selBr!=='All'&&r.brand!==selBr)return;
+    bs.add(r.brand);
+    if(!mt.has(r.pack))mt.set(r.pack,new Map());
+    const m=mt.get(r.pack);m.set(r.brand,(m.get(r.brand)||0)+r.cases);
+  });
+  const B=[...bs].sort(cmp),P=[...mt.keys()].sort(cmp);
+  const rows=P.map(p=>{const m=mt.get(p),vals=B.map(b=>m.get(b)||0);return{p,vals,t:vals.reduce((a,b)=>a+b,0)};});
+  const ct=B.map((b,i)=>rows.reduce((s,r)=>s+r.vals[i],0));
+  return{B,rows,ct,tot:ct.reduce((a,b)=>a+b,0)};
+}
 function scell(tr,v,cls,tag){const e=document.createElement(tag||'td');e.textContent=v;if(cls)e.className=cls;tr.appendChild(e);}
 function refresh(){
   const s=sale(),p=pack();
@@ -457,7 +477,7 @@ function refresh(){
   if($('auto').checked)makeImgs();
 }
 $('th').onchange=()=>{applyTheme();refresh();};
-['fd','fs','cS','cP','tg','pf'].forEach(i=>$(i).onchange=refresh);
+['fd','fs','cS','cP','tg','pf','fpk','fbr'].forEach(i=>$(i).onchange=refresh);
 function smk(W,H){const S=2,c=document.createElement('canvas');c.width=W*S;c.height=H*S;const x=c.getContext('2d');x.scale(S,S);x.fillStyle=TM.bg;x.fillRect(0,0,W,H);x.textBaseline='middle';return{c,x};}
 function dateLbl(){const d=$('fd').value;if(d!=='All')return d.split('-').reverse().join('/');const ds=[...new Set(ALL.map(r=>r.date))].sort();return ds.length?ds[0].split('-').reverse().join('/')+(ds.length>1?' - '+ds[ds.length-1].split('-').reverse().join('/'):''):'';}
 function shdr(x,W,sub){const g=x.createLinearGradient(0,0,W,0);g.addColorStop(0,TM.g0);g.addColorStop(1,TM.g1);x.fillStyle=g;x.fillRect(0,0,W,72);x.fillStyle='#fff';x.textAlign='left';x.font='bold 22px Arial';x.fillText(agency,20,27,W-200);x.font='14px Arial';x.fillText(sub+' · '+($('fs').value==='All'?'All SDMs':$('fs').value),20,52,W-200);x.textAlign='right';x.font='bold 18px Arial';x.fillText(dateLbl(),W-20,36);}
@@ -484,30 +504,157 @@ if(!(navigator.share&&navigator.canShare)){$('s1').classList.add('hid');$('s2').
 $('dx').onclick=()=>{const s=sale(),p=pack();const a1=[['PJP_LABEL','Sum of SDO_CASES'],...s.rows.map(r=>[r[0],+r[1].toFixed(4)]),['Grand Total',+s.tot.toFixed(4)]];const a2=[['Package \\ Brand',...p.B,'Grand Total'],...p.rows.map(r=>[r.p,...r.vals.map(v=>v?+v.toFixed(4):''),+r.t.toFixed(4)]),['Grand Total',...p.ct.map(v=>+v.toFixed(4)),+p.tot.toFixed(4)]];const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(a1),'Sale Raw');XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(a2),'PACK & BRAND');sdlBlob('Sale_Raw_Pack_Brand_'+dateLbl().replace(/[^0-9]+/g,'-')+'.xlsx',new Blob([XLSX.write(wb,{type:'array',bookType:'xlsx'})]));};
 
 /* =====================================================
-   SDO KPI TOOL
+   SDO KPI TOOL — FULL COLUMN VERSION
 ===================================================== */
-const SDM={'Aqeel Ahmad':['10075','8070','7030','5556'],'Muhammad Hassan':['101041','2124','1694']};
-function todayStr(){const d=new Date();return String(d.getDate()).padStart(2,'0')+'-'+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]+'-'+d.getFullYear();}
-function kpct(v,d){return(v===''||v==null||isNaN(v))?'':(v*100).toFixed(d)+'%';}
-function knum(v,d){return(v===''||v==null||isNaN(v))?'':Number(v).toFixed(d);}
+const KSDM={'Aqeel Ahmad':['10075','8070','7030','5556'],'Muhammad Hassan':['101041','2124','1694']};
+const KCOLS=[
+  {k:'cc',l:'Call Completion',n:'CALL COMPLETION %',t:'p',d:0,a:'avg',on:1,req:1},
+  {k:'sr',l:'Strike Rate',n:'STRIKE RATE',t:'p',d:0,a:'avg',on:1,req:1},
+  {k:'skuo',l:'SKU/Order',n:'AVG. SKU / ORDER',t:'n',d:1,a:'avg',on:1},
+  {k:'sku',l:'SKU/Invoice',n:'AVG. SKU / INVOICE',t:'n',d:1,a:'avg',on:1,req:1},
+  {k:'dvo',l:'Order Vs Delivery',n:'DELIVERY VS. ORDER %',t:'p',d:1,a:'avg',on:1,req:1},
+  {k:'fin',l:'Full in',n:'FULL IN %',t:'p',d:1,a:'avg',on:1,req:1},
+  {k:'x_out',l:'Total Outlets',n:'TOTAL OUTLETS',t:'n',d:0,a:'sum'},
+  {k:'x_adsc',l:'Avg Daily Sched. Calls',n:'AVG. DAILY SCHED. CALLS',t:'n',d:0,a:'sum'},
+  {k:'x_sc',l:'Scheduled Calls',n:'SCHEDULED CALLS',t:'n',d:0,a:'sum'},
+  {k:'x_ac',l:'Actual Calls',n:'ACTUAL CALLS',t:'n',d:0,a:'sum'},
+  {k:'x_unc',l:'Unplan. Calls/Orders',n:'UNPLAN. CALLS/ ORDERS',t:'n',d:0,a:'sum'},
+  {k:'x_uncp',l:'Unplanned Calls %',n:'UNPLANNED CALLS %',t:'p',d:1,a:'avg'},
+  {k:'x_so',l:'Sched. Orders',n:'SCHED. ORDERS',t:'n',d:0,a:'sum'},
+  {k:'x_to',l:'Total Orders',n:'TOTAL ORDERS',t:'n',d:0,a:'sum'},
+  {k:'x_oq',l:'Ordered Qty (8oz)',n:'ORDERED QTY (8OZ)',t:'n',d:1,a:'sum'},
+  {k:'x_dso',l:'Drop Size (Order)',n:'DROP SIZE',o:0,t:'n',d:1,a:'avg'},
+  {k:'x_tso',l:'Total SKUs (Order)',n:'TOTAL SKUS',o:0,t:'n',d:1,a:'avg'},
+  {k:'x_as',l:'Actual Sale (8oz)',n:'ACTUAL SALE (8OZ)',t:'n',d:1,a:'sum'},
+  {k:'x_adt',l:'Avg Daily Target (8oz)',n:'AVG. DAILY TARGET (8OZ)',t:'n',d:1,a:'sum'},
+  {k:'x_ada',l:'Avg Daily Actual Sale (8oz)',n:'AVG. DAILY ACTUAL SALE (8OZ)',t:'n',d:1,a:'sum'},
+  {k:'x_bom',l:'BOM Avg Daily Sale Req. (8oz)',n:'BOM AVG. DAILY SALE REQ. (8OZ)',t:'n',d:1,a:'sum'},
+  {k:'x_pdo',l:'Prior Day Ordered Qty (8oz)',n:'PRIOR DAY ORDERED QTY (8OZ)',t:'n',d:1,a:'sum'},
+  {k:'x_lo',l:'Load Out (8oz)',n:'LOAD OUT (8OZ)',t:'n',d:1,a:'sum'},
+  {k:'x_fi8',l:'Full In (8oz)',n:'FULL IN (8OZ)',t:'n',d:1,a:'sum'},
+  {k:'x_dsd',l:'Drop Size (Delivery)',n:'DROP SIZE',o:1,t:'n',d:1,a:'avg'},
+  {k:'x_tsd',l:'Total SKUs (Delivery)',n:'TOTAL SKUS',o:1,t:'n',d:1,a:'avg'},
+  {k:'x_dpt',l:'Desk-Sale % of Total',n:'DESK-SALE % OF TOTAL',t:'n',d:1,a:'avg'},
+  {k:'x_ds',l:'Desk-Sale (8oz)',n:'DESK-SALE (8OZ)',t:'n',d:1,a:'sum'},
+  {k:'x_ss',l:'Spot Sale (8oz)',n:'SPOT SALE (8OZ)',t:'n',d:1,a:'sum'},
+  {k:'x_dfs',l:'DFS (M/Outlet)',n:'DFS (M/OUTLET)',t:'n',d:2,a:'avg'},
+  {k:'x_tis',l:'TIS (M)',n:'TIS (M)',t:'n',d:2,a:'avg'},
+  {k:'x_tim',l:'TIM (H)',n:'TIM (H)',t:'n',d:2,a:'avg'},
+  {k:'x_ibl',l:'Invoices Booked LD',n:'INVOICES BOOKED LD',t:'n',d:0,a:'sum'},
+  {k:'x_skb',l:'SKU Booked',n:'SKU BOOKED',t:'n',d:0,a:'sum'},
+  {k:'x_ind',l:'Invoices Delivered',n:'INVOICES DELIVERED',t:'n',d:0,a:'sum'},
+  {k:'x_skd',l:'SKU Delivered',n:'SKU DELIVERED',t:'n',d:0,a:'sum'},
+  {k:'x_upsk',l:'UP SKU Booked',n:'UP SKU BOOKED',t:'n',d:0,a:'sum'},
+  {k:'x_upv',l:'UP Volume Booked',n:'UP VOLUME BOOKED',t:'n',d:1,a:'sum'},
+  {k:'x_vbr',l:'Volume Booked (RC)',n:'VOLUME BOOKED (RC)',t:'n',d:0,a:'sum'},
+  {k:'x_vdr',l:'Volume Delivered (RC)',n:'VOLUME DELIVERD (RC)',t:'n',d:0,a:'sum'},
+  {k:'x_can',l:'Cancelled Orders (8oz)',n:'CANCELLED ORDERS (8OZ)',t:'n',d:1,a:'sum'},
+  {k:'x_pao',l:'PJP Active Outlets',n:'PJP ACTIVE OUTLETS',t:'n',d:0,a:'sum'}
+];
+function kidxOf(h,name,o){const a=[];h.forEach((c,i)=>{if(String(c).trim().toUpperCase()===name)a.push(i);});return a[o||0]==null?-1:a[o||0];}
+function kavgOf(a){const o={};KCOLS.forEach(c=>{const s=a.reduce((t,x)=>t+(+x[c.k]||0),0);o[c.k]=a.length?(c.a==='sum'?s:s/a.length):NaN;});return o;}
+let KREPORT_DATE='';
+const KMON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function kreportDate(rows){let gen=null,per=null;for(const r of rows)for(const c of r){const t=String(c);let m=t.match(/Generated On:\s*(\d{1,2})\/(\d{1,2})\/(\d{4})/i);if(m&&!gen)gen=m;m=t.match(/Period:\s*\d{1,2}\/\d{1,2}\/\d{4}\s*-\s*(\d{1,2})\/(\d{1,2})\/(\d{4})/i);if(m&&!per)per=m;}const m=gen||per;if(!m)return'';return String(m[1]).padStart(2,'0')+'-'+KMON[+m[2]-1]+'-'+m[3];}
+function todayStr(){const d=new Date();return String(d.getDate()).padStart(2,'0')+'-'+KMON[d.getMonth()]+'-'+d.getFullYear();}
 function cleanPSR(s){return String(s||'').replace(/^\s*\d+\s*-\s*/,'').trim();}
 function psrId(s){const m=String(s||'').match(/^\s*(\d+)/);return m?m[1]:'';}
-function findCol(h,name){return h.findIndex(c=>String(c).trim().toUpperCase()===name);}
-const KF=['cc','sr','sku','dvo','fin'];
-function avgOf(a){const o={};KF.forEach(f=>o[f]=a.length?a.reduce((s,x)=>s+(+x[f]||0),0)/a.length:NaN);return o;}
-let REPORT_DATE='';
-const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-function reportDate(rows){let gen=null,per=null;for(const r of rows)for(const c of r){const t=String(c);let m=t.match(/Generated On:\s*(\d{1,2})\/(\d{1,2})\/(\d{4})/i);if(m&&!gen)gen=m;m=t.match(/Period:\s*\d{1,2}\/\d{1,2}\/\d{4}\s*-\s*(\d{1,2})\/(\d{1,2})\/(\d{4})/i);if(m&&!per)per=m;}const m=gen||per;if(!m)return'';return String(m[1]).padStart(2,'0')+'-'+MON[+m[2]-1]+'-'+m[3];}
-function kparse(rows){const hi=rows.findIndex(r=>r.some(c=>String(c).trim().toUpperCase()==='PJP NAME'));if(hi<0)throw new Error('Header row (PJP Name) nahi mila');const h=rows[hi];const ix={id:findCol(h,'PJP ID'),pjp:findCol(h,'PJP NAME'),psr:findCol(h,'PSR'),cc:findCol(h,'CALL COMPLETION %'),sr:findCol(h,'STRIKE RATE'),sku:findCol(h,'AVG. SKU / INVOICE'),dvo:findCol(h,'DELIVERY VS. ORDER %'),fin:findCol(h,'FULL IN %')};for(const k in ix)if(ix[k]<0)throw new Error('Column nahi mila: '+k);const out=[];for(let i=hi+1;i<rows.length;i++){const r=rows[i];if(r[ix.id]===''||r[ix.id]==null)continue;if(!cleanPSR(r[ix.psr]))continue;if(/^competition/i.test(String(r[ix.pjp]).trim()))continue;out.push({id:psrId(r[ix.psr]),name:cleanPSR(r[ix.psr]),cc:+r[ix.cc],sr:+r[ix.sr],sku:+r[ix.sku],dvo:+r[ix.dvo],fin:+r[ix.fin]});}return out;}
-function kpis(o){const D={cc:0,sr:0,sku:1,dvo:1,fin:1};const c=(k,v,txt)=>'<td contenteditable="true" data-k="'+k+'" data-d="'+D[k]+'" data-p="'+(k==='sku'?0:1)+'" data-v="'+(isNaN(v)?'':v)+'">'+txt+'</td>';return c('cc',o.cc*100,kpct(o.cc,0))+c('sr',o.sr*100,kpct(o.sr,0))+c('sku',o.sku,knum(o.sku,1))+c('dvo',o.dvo*100,kpct(o.dvo,1))+c('fin',o.fin*100,kpct(o.fin,1));}
+function kfindCol(h,name){return h.findIndex(c=>String(c).trim().toUpperCase()===name);}
+function kparse(rows){
+  const hi=rows.findIndex(r=>r.some(c=>String(c).trim().toUpperCase()==='PJP NAME'));
+  if(hi<0)throw new Error('Header row (PJP Name) nahi mila');
+  const h=rows[hi];
+  const ix={id:kfindCol(h,'PJP ID'),pjp:kfindCol(h,'PJP NAME'),psr:kfindCol(h,'PSR')};
+  for(const k in ix)if(ix[k]<0)throw new Error('Column nahi mila: '+k);
+  KCOLS.forEach(c=>{c.i=kidxOf(h,c.n,c.o);if(c.i<0&&c.req)throw new Error('Column nahi mila: '+c.n);});
+  const out=[];
+  for(let i=hi+1;i<rows.length;i++){
+    const r=rows[i];
+    if(r[ix.id]===''||r[ix.id]==null)continue;
+    if(!cleanPSR(r[ix.psr]))continue;
+    if(/^competition/i.test(String(r[ix.pjp]).trim()))continue;
+    const o={id:psrId(r[ix.psr]),name:cleanPSR(r[ix.psr])};
+    KCOLS.forEach(c=>{o[c.k]=c.i<0?NaN:+r[c.i];});
+    out.push(o);
+  }
+  return out;
+}
+function kpct(v,d){return(v===''||v==null||isNaN(v))?'':(v*100).toFixed(d)+'%';}
+function knum(v,d){return(v===''||v==null||isNaN(v))?'':Number(v).toFixed(d);}
+function kpis(o){return KCOLS.map(c=>{const v=o[c.k],dv=c.t==='p'?v*100:v;return'<td contenteditable="true" data-k="'+c.k+'" data-d="'+c.d+'" data-p="'+(c.t==='p'?1:0)+'" data-a="'+c.a+'" data-v="'+(isNaN(dv)?'':dv)+'">'+(c.t==='p'?kpct(v,c.d):knum(v,c.d))+'</td>';}).join('');}
 const KKEYS=['cc','sr','sku','dvo','fin'];
-function applyColors(){KKEYS.forEach(k=>{const raw=document.getElementById('th_'+k).value;const th=parseFloat(raw);document.querySelectorAll('td[data-k="'+k+'"]').forEach(td=>{const v=parseFloat(td.dataset.v);const bad=raw!==''&&!isNaN(th)&&!isNaN(v)&&(k==='fin'?v>th:v<th);td.classList.toggle('lr',bad);});});}
+function applyColors(){KKEYS.forEach(k=>{const raw=document.getElementById('th_'+k).value;const th=parseFloat(raw);document.querySelectorAll('.ktbl td[data-k="'+k+'"]').forEach(td=>{const v=parseFloat(td.dataset.v);const bad=raw!==''&&!isNaN(th)&&!isNaN(v)&&(k==='fin'?v>th:v<th);td.classList.toggle('lr',bad);});});}
 KKEYS.forEach(k=>{const el=document.getElementById('th_'+k);try{const sv=localStorage.getItem('th_'+k);if(sv!==null)el.value=sv;}catch(_){}el.addEventListener('input',()=>{try{localStorage.setItem('th_'+k,el.value);}catch(_){}applyColors();});});
-function attach(tb){const sum=cls=>{let s=0;tb.querySelectorAll('td.'+cls).forEach(td=>{const v=parseFloat(td.textContent.replace(/,/g,''));if(!isNaN(v))s+=v;});return s;};tb.oninput=e=>{tb.querySelector('td.sd').textContent=sum('drop');tb.querySelector('td.sw').textContent=sum('wec');const td=e.target.closest?e.target.closest('td'):null;if(td&&td.dataset.k&&!td.parentElement.classList.contains('tot')){td.dataset.v=parseFloat(td.textContent.replace(/[%,\s]/g,''));const k=td.dataset.k,vals=[];tb.querySelectorAll('tr:not(.tot) td[data-k="'+k+'"]').forEach(x=>{const v=parseFloat(x.dataset.v);if(!isNaN(v))vals.push(v);});const tt=tb.querySelector('tr.tot td[data-k="'+k+'"]');if(tt&&vals.length){const av=vals.reduce((a,b)=>a+b,0)/vals.length;tt.dataset.v=av;tt.textContent=av.toFixed(+tt.dataset.d)+(tt.dataset.p==='1'?'%':'');}}applyColors();};}
-function kbuild(tableId,label,rows){const d=REPORT_DATE||todayStr();const H=['Date',label,'Call Completion','Strike Rate','SKU/Invoice','Order Vs Delivery','Full in','Dropage','WEC'];let h='<tr>'+H.map((x,i)=>'<th'+(i<2?' class="l"':'')+'>'+x+'</th>').join('')+'</tr>';rows.forEach(r=>{h+='<tr><td class="l" contenteditable="true">'+d+'</td><td class="l" contenteditable="true">'+r.name+'</td>'+kpis(r)+'<td class="drop" contenteditable="true"></td><td class="wec" contenteditable="true"></td></tr>';});const t=avgOf(rows);h+='<tr class="tot"><td class="l" colspan="2">Total</td>'+kpis(t)+'<td class="sd">0</td><td class="sw">0</td></tr>';const tb=document.getElementById(tableId);tb.innerHTML=h;attach(tb);}
-document.getElementById('kf').addEventListener('change',async e=>{const msg=document.getElementById('kmsg');msg.textContent='';const file=e.target.files[0];if(!file)return;try{const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});REPORT_DATE=reportDate(rows);const psr=kparse(rows);kbuild('kt1','PSR Name',psr);const sdo=Object.keys(SDM).map(n=>Object.assign({name:n},avgOf(psr.filter(p=>SDM[n].includes(p.id)))));kbuild('kt2','SDO',sdo);applyColors();document.getElementById('kout').style.display='block';}catch(err){msg.textContent='Error: '+err.message;}});
-function saveAll(){try{localStorage.setItem('kpiSaved',JSON.stringify({t1:document.getElementById('kt1').innerHTML,t2:document.getElementById('kt2').innerHTML,at:new Date().toLocaleString()}));document.getElementById('savemsg').textContent='Save ho gaya ✔';}catch(e){document.getElementById('savemsg').textContent='Save nahi ho saka';}}
-function restoreAll(){try{const o=JSON.parse(localStorage.getItem('kpiSaved'));['kt1','kt2'].forEach(id=>{const t=document.getElementById(id);t.innerHTML=o[id];attach(t);});applyColors();document.getElementById('kout').style.display='block';document.getElementById('savemsg').textContent='Saved: '+o.at;}catch(e){}}
+
+/* Column selector */
+const KALLC=[{id:'date',l:'Date'},{id:'name',l:'Name (PSR / SDO)'}].concat(KCOLS.map(c=>({id:c.k,l:c.l,on:c.on})));
+KALLC.forEach((c,i)=>{if(i<2)c.on=1;});
+(function(){
+  const bar=document.getElementById('colbar');
+  bar.innerHTML='<b>Columns dikhao (tick/untick karo)</b> <button style="margin:0 0 0 8px;padding:3px 10px" id="callon">Sab tick</button> <button style="margin:0 0 0 4px;padding:3px 10px" id="calloff">Sab hatao</button><br>'
+    +KALLC.map((c,i)=>'<label style="display:inline-block;margin:3px 10px 3px 0"><input type="checkbox" data-col="'+i+'" data-id="'+c.id+'"'+(c.on?' checked':'')+'> '+c.l+'</label>').join('');
+  bar.querySelectorAll('input').forEach(c=>{
+    try{const sv=localStorage.getItem('colv2_'+c.dataset.id);if(sv!==null)c.checked=sv==='1';}catch(_){}
+    c.addEventListener('change',()=>{try{localStorage.setItem('colv2_'+c.dataset.id,c.checked?'1':'0');}catch(_){}applyCols();});
+  });
+  const all=v=>{bar.querySelectorAll('input').forEach(c=>{c.checked=v;try{localStorage.setItem('colv2_'+c.dataset.id,v?'1':'0');}catch(_){}});applyCols();};
+  document.getElementById('callon').onclick=()=>all(true);
+  document.getElementById('calloff').onclick=()=>all(false);
+})();
+function applyCols(){
+  const on={};document.querySelectorAll('#colbar input').forEach(c=>on[c.dataset.col]=c.checked);
+  const last=KALLC.length-1;
+  ['kt1','kt2'].forEach(id=>{
+    document.querySelectorAll('#'+id+' tr').forEach(tr=>{
+      const tot=tr.classList.contains('tot');
+      Array.from(tr.children).forEach((cell,i)=>{
+        if(tot&&i===0){const n=(on[0]?1:0)+(on[1]?1:0);cell.style.display=n?'':'none';if(n)cell.colSpan=n;return;}
+        const col=tot?i+1:i;cell.style.display=(col<=last&&!on[col])?'none':'';
+      });
+    });
+  });
+}
+function attach(tb){
+  const sum=cls=>{let s=0;tb.querySelectorAll('td.'+cls).forEach(td=>{const v=parseFloat(td.textContent.replace(/,/g,''));if(!isNaN(v))s+=v;});return s;};
+  tb.oninput=e=>{
+    tb.querySelector('td.sd').textContent=sum('drop');tb.querySelector('td.sw').textContent=sum('wec');
+    const td=e.target.closest?e.target.closest('td'):null;
+    if(td&&td.dataset.k&&!td.parentElement.classList.contains('tot')){
+      td.dataset.v=parseFloat(td.textContent.replace(/[%,\s]/g,''));
+      const k=td.dataset.k,vals=[];
+      tb.querySelectorAll('tr:not(.tot) td[data-k="'+k+'"]').forEach(x=>{const v=parseFloat(x.dataset.v);if(!isNaN(v))vals.push(v);});
+      const tt=tb.querySelector('tr.tot td[data-k="'+k+'"]');
+      if(tt&&vals.length){const sm=vals.reduce((a,b)=>a+b,0),av=tt.dataset.a==='sum'?sm:sm/vals.length;tt.dataset.v=av;tt.textContent=av.toFixed(+tt.dataset.d)+(tt.dataset.p==='1'?'%':'');}
+    }
+    applyColors();
+  };
+}
+function kbuild(tableId,label,rows){
+  const d=KREPORT_DATE||todayStr();
+  const H=['Date',label].concat(KCOLS.map(c=>c.l),['Dropage','WEC']);
+  let h='<tr>'+H.map((x,i)=>'<th'+(i<2?' class="l"':'')+'>'+x+'</th>').join('')+'</tr>';
+  rows.forEach(r=>{h+='<tr><td class="l" contenteditable="true">'+d+'</td><td class="l" contenteditable="true">'+r.name+'</td>'+kpis(r)+'<td class="drop" contenteditable="true"></td><td class="wec" contenteditable="true"></td></tr>';});
+  const t=kavgOf(rows);
+  h+='<tr class="tot"><td class="l" colspan="2">Total</td>'+kpis(t)+'<td class="sd">0</td><td class="sw">0</td></tr>';
+  const tb=document.getElementById(tableId);tb.innerHTML=h;attach(tb);
+}
+document.getElementById('kf').addEventListener('change',async e=>{
+  const msg=document.getElementById('kmsg');msg.textContent='';
+  const file=e.target.files[0];if(!file)return;
+  try{
+    const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});
+    const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});
+    KREPORT_DATE=kreportDate(rows);
+    const psr=kparse(rows);
+    kbuild('kt1','PSR Name',psr);
+    const sdo=Object.keys(KSDM).map(n=>Object.assign({name:n},kavgOf(psr.filter(p=>KSDM[n].includes(p.id)))));
+    kbuild('kt2','SDO',sdo);
+    applyColors();applyCols();
+    document.getElementById('kout').style.display='block';
+  }catch(err){msg.textContent='Error: '+err.message;}
+});
+function saveAll(){try{localStorage.setItem('kpiSaved',JSON.stringify({v:2,t1:document.getElementById('kt1').innerHTML,t2:document.getElementById('kt2').innerHTML,at:new Date().toLocaleString()}));document.getElementById('savemsg').textContent='Save ho gaya ✔';}catch(e){document.getElementById('savemsg').textContent='Save nahi ho saka';}}
+function restoreAll(){try{const o=JSON.parse(localStorage.getItem('kpiSaved'));if(o.v!==2){document.getElementById('kmsg').textContent='Purani saved table naye format me nahi khul sakti, Excel dobara upload karo.';return;}['kt1','kt2'].forEach(id=>{const t=document.getElementById(id);t.innerHTML=o[id];attach(t);});applyColors();applyCols();document.getElementById('kout').style.display='block';document.getElementById('savemsg').textContent='Saved: '+o.at;}catch(e){}}
 try{if(localStorage.getItem('kpiSaved'))document.getElementById('krestore').style.display='inline-block';}catch(_){}
 async function krender(id){const src=document.getElementById(id);const w=src.querySelector('table').scrollWidth+24;const c=src.cloneNode(true);c.removeAttribute('id');c.style.cssText='position:absolute;left:-10000px;top:0;width:'+w+'px;background:#fff;padding:8px;box-sizing:border-box';c.querySelector('.kwrap').style.overflow='visible';const t=c.querySelector('table');t.style.width='100%';t.style.minWidth='0';document.body.appendChild(c);try{return await html2canvas(c,{backgroundColor:'#fff',scale:2,width:w,windowWidth:w+50});}finally{c.remove();}}
 function ktoBlob(cv){return new Promise(r=>cv.toBlob(r,'image/png'));}
